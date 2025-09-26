@@ -33,7 +33,7 @@ namespace core::rhi
 		virtual ~Buffer() = default;
 
 		virtual void* Map() = 0;
-		virtual void* Unmap() = 0;
+		virtual void Unmap() = 0;
 		virtual void Update(const void* data, size_t size, size_t offset = 0) = 0;
 	};
 }

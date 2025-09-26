@@ -42,7 +42,7 @@ namespace core::rhi
 		virtual ~DescriptorSet() = default;
 
 		virtual void BindBuffer(uint32_t binding, Buffer* buffer, size_t offset, size_t range) = 0;
-		virtual void BindImage(uint32_t binding, Image* image, ImageUsage* usage) = 0;
+		virtual void BindImage(uint32_t binding, Image* image, const ImageUsage& usage) = 0;
 	};
 }
 
