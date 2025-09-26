@@ -2,6 +2,8 @@
 #define VRAKTAL_CORE_RHI_BUFFER_H
 #pragma once
 
+#include <memory>
+
 namespace core::rhi
 {
 	enum class BufferUsage
@@ -22,19 +24,27 @@ namespace core::rhi
 
 	struct BufferDesc
 	{
-		size_t size;
-		BufferUsage usage;
-		MemoryUsage memory;
+		size_t size = 0;
+		BufferUsage usage = BufferUsage::Vertex;
+		MemoryUsage memory = MemoryUsage::GPU;
 	};
 
 	class Buffer
 	{
 	public:
-		virtual ~Buffer() = default;
+		explicit Buffer(const BufferDesc& desc);
+		~Buffer();
 
-		virtual void* Map() = 0;
-		virtual void Unmap() = 0;
-		virtual void Update(const void* data, size_t size, size_t offset = 0) = 0;
+		void* Map();
+		void Unmap();
+		void Update(const void* data, size_t size, size_t offset = 0);
+
+		const BufferDesc& GetDesc() const { return m_desc; }
+
+	private:
+		struct Impl;
+		std::unique_ptr<Impl> m_impl;
+		BufferDesc m_desc;
 	};
 }
 

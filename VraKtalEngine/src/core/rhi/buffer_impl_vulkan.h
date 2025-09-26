@@ -5,31 +5,25 @@
 #include <vulkan/vulkan.h>
 #include <core/rhi/buffer.h>
 
-using namespace core::rhi;
-
-namespace core::rhi::vulkan
+namespace core::rhi
 {
 	VkBufferUsageFlags ToVkBufferUsage(BufferUsage usage);
 	VkMemoryPropertyFlags ToVkMemoryUsage(MemoryUsage memory);
 
-	class BufferVulkan : public Buffer
+	struct Buffer::Impl
 	{
-	public:
-		BufferVulkan(VkDevice device, VkPhysicalDevice physicalDevice, const BufferDesc& desc);
-		~BufferVulkan() override;
+        VkDevice device = VK_NULL_HANDLE;
+        VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+        VkBuffer buffer = VK_NULL_HANDLE;
+        VkDeviceMemory memory = VK_NULL_HANDLE;
+        size_t size = 0;
 
-		void* Map() override;
-		void Unmap() override;
-		void Update(const void* data, size_t size, size_t offset = 0) override;
+        Impl(VkDevice dev, VkPhysicalDevice phys, const BufferDesc& desc);
+        ~Impl();
 
-		VkBuffer GetHandle() const { return m_buffer; }
-		VkDeviceMemory GetMemory() const { return m_memory; }
-
-	private:
-		VkDevice m_device;
-		VkBuffer m_buffer = VK_NULL_HANDLE;
-		VkDeviceMemory m_memory = VK_NULL_HANDLE;
-		size_t m_size = 0;
+        void* Map();
+        void Unmap();
+        void Update(const void* data, size_t size, size_t offset);
 	};
 }
 

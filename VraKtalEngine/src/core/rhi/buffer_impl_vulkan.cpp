@@ -3,9 +3,15 @@
 #include <stdexcept>
 #include <cstring>
 
-using namespace core::rhi::vulkan;
+using namespace core::rhi;
 
-VkBufferUsageFlags core::rhi::vulkan::ToVkBufferUsage(BufferUsage usage)
+Buffer::~Buffer() = default;
+
+void* Buffer::Map() { return m_impl->Map(); }
+void Buffer::Unmap() { m_impl->Unmap(); }
+void Buffer::Update(const void* data, size_t size, size_t offset) { m_impl->Update(data, size, offset); }
+
+VkBufferUsageFlags core::rhi::ToVkBufferUsage(BufferUsage usage)
 {
 	switch (usage)
 	{
@@ -19,7 +25,7 @@ VkBufferUsageFlags core::rhi::vulkan::ToVkBufferUsage(BufferUsage usage)
 	}
 }
 
-VkMemoryPropertyFlags core::rhi::vulkan::ToVkMemoryUsage(MemoryUsage memory)
+VkMemoryPropertyFlags core::rhi::ToVkMemoryUsage(MemoryUsage memory)
 {
 	switch (memory)
 	{
@@ -32,8 +38,15 @@ VkMemoryPropertyFlags core::rhi::vulkan::ToVkMemoryUsage(MemoryUsage memory)
 	}
 }
 
-BufferVulkan::BufferVulkan(VkDevice device, VkPhysicalDevice physicalDevice, const BufferDesc& desc)
-	: m_device(device), m_size(desc.size)
+Buffer::Buffer(const BufferDesc& desc)
+{
+	extern VkDevice vulkanDevice;
+	extern VkPhysicalDevice vulkanPhysicalDevice;
+	m_impl = std::make_unique<Impl>(vulkanDevice, vulkanPhysicalDevice, desc);
+}
+
+Buffer::Impl::Impl(VkDevice device, VkPhysicalDevice physicalDevice, const BufferDesc& desc)
+	: device(device), physicalDevice(physicalDevice), size(desc.size)
 {
 	VkBufferCreateInfo bufferInfo{};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -41,13 +54,13 @@ BufferVulkan::BufferVulkan(VkDevice device, VkPhysicalDevice physicalDevice, con
 	bufferInfo.usage = ToVkBufferUsage(desc.usage);
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (vkCreateBuffer(m_device, &bufferInfo, nullptr, &m_buffer) != VK_SUCCESS)
+	if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create Vulkan Buffer");
 	}
 
 	VkMemoryRequirements memRequirements;
-	vkGetBufferMemoryRequirements(m_device, m_buffer, &memRequirements);
+	vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
 
 	VkPhysicalDeviceMemoryProperties memProperties;
 	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
@@ -74,42 +87,42 @@ BufferVulkan::BufferVulkan(VkDevice device, VkPhysicalDevice physicalDevice, con
 	allocInfo.allocationSize = memRequirements.size;
 	allocInfo.memoryTypeIndex = memoryTypeIndex;
 
-	if (vkAllocateMemory(m_device, &allocInfo, nullptr, &m_memory) != VK_SUCCESS)
+	if (vkAllocateMemory(device, &allocInfo, nullptr, &memory) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to allocate Vulkan Buffer memory");
 	}
 
-	vkBindBufferMemory(m_device, m_buffer, m_memory, 0);
+	vkBindBufferMemory(device, buffer, memory, 0);
 }
 
-BufferVulkan::~BufferVulkan()
+Buffer::Impl::~Impl()
 {
-	if (m_buffer != VK_NULL_HANDLE)
+	if (buffer != VK_NULL_HANDLE)
 	{
-		vkDestroyBuffer(m_device, m_buffer, nullptr);
+		vkDestroyBuffer(device, buffer, nullptr);
 	}
-	if (m_memory != VK_NULL_HANDLE)
+	if (memory != VK_NULL_HANDLE)
 	{
-		vkFreeMemory(m_device, m_memory, nullptr);
+		vkFreeMemory(device, memory, nullptr);
 	}
 }
 
-void* BufferVulkan::Map()
+void* Buffer::Impl::Map()
 {
 	void* data;
-	vkMapMemory(m_device, m_memory, 0, m_size, 0, &data);
+	vkMapMemory(device, memory, 0, size, 0, &data);
 	return data;
 }
 
-void BufferVulkan::Unmap()
+void Buffer::Impl::Unmap()
 {
-	vkUnmapMemory(m_device, m_memory);
+	vkUnmapMemory(device, memory);
 }
 
-void BufferVulkan::Update(const void* data, size_t size, size_t offset)
+void Buffer::Impl::Update(const void* data, size_t size, size_t offset)
 {
 	void* mappedData = nullptr;
-	vkMapMemory(m_device, m_memory, offset, size, 0, &mappedData);
+	vkMapMemory(device, memory, offset, size, 0, &mappedData);
 	std::memcpy(mappedData, data, size);
-	vkUnmapMemory(m_device, m_memory);
+	vkUnmapMemory(device, memory);
 }
