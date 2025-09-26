@@ -76,7 +76,7 @@ namespace core::graphics
 		virtual void Compile();
 
 		// Execute: run each pass in order, applying layout/access transitions and invoking callbacks.
-		virtual DDvoid Execute(CommandBuffer& commandBuffer);
+		virtual void Execute(CommandBuffer& commandBuffer);
 
 	private:
 		std::vector<Pass> m_passes;

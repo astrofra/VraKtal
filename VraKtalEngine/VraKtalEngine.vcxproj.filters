@@ -87,6 +87,9 @@
     <ClCompile Include="src\core\rhi\buffer_impl_vulkan.cpp">
       <Filter>Source Files\core\rhi</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\rhi\descriptorSet_impl_vulkan.cpp">
+      <Filter>Source Files\core\rhi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\vkb\VkBootstrap.h">

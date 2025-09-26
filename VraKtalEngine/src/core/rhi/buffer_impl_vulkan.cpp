@@ -70,5 +70,46 @@ BufferVulkan::BufferVulkan(VkDevice device, VkPhysicalDevice physicalDevice, con
 	}
 
 	VkMemoryAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = memoryTypeIndex;
+
+	if (vkAllocateMemory(m_device, &allocInfo, nullptr, &m_memory) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to allocate Vulkan Buffer memory");
+	}
+
+	vkBindBufferMemory(m_device, m_buffer, m_memory, 0);
 }
 
+BufferVulkan::~BufferVulkan()
+{
+	if (m_buffer != VK_NULL_HANDLE)
+	{
+		vkDestroyBuffer(m_device, m_buffer, nullptr);
+	}
+	if (m_memory != VK_NULL_HANDLE)
+	{
+		vkFreeMemory(m_device, m_memory, nullptr);
+	}
+}
+
+void* BufferVulkan::Map()
+{
+	void* data;
+	vkMapMemory(m_device, m_memory, 0, m_size, 0, &data);
+	return data;
+}
+
+void BufferVulkan::Unmap()
+{
+	vkUnmapMemory(m_device, m_memory);
+}
+
+void BufferVulkan::Update(const void* data, size_t size, size_t offset)
+{
+	void* mappedData = nullptr;
+	vkMapMemory(m_device, m_memory, offset, size, 0, &mappedData);
+	std::memcpy(mappedData, data, size);
+	vkUnmapMemory(m_device, m_memory);
+}

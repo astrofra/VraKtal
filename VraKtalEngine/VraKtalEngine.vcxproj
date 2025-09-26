@@ -141,6 +141,7 @@
     <ClCompile Include="src\core\loaders\textureLoader.cpp" />
     <ClCompile Include="src\core\rhi\buffer_impl_vulkan.cpp" />
     <ClCompile Include="src\core\rhi\commandBuffer_impl_vulkan.cpp" />
+    <ClCompile Include="src\core\rhi\descriptorSet_impl_vulkan.cpp" />
     <ClCompile Include="src\core\rhi\gpuDevice_impl_glfw_vulkan.cpp" />
     <ClCompile Include="src\core\rhi\image_impl_vulkan.cpp" />
     <ClCompile Include="src\core\rhi\pipeline_impl_vulkan.cpp" />
