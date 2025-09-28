@@ -3,7 +3,7 @@
 #pragma once
 
 #include <cstdint>
-
+#include <memory>
 #include <core/rhi/renderingInfo.h>
 
 namespace core::rhi
@@ -14,16 +14,21 @@ namespace core::rhi
     class CommandBuffer 
     {
     public:
-        virtual ~CommandBuffer() = default;
+        explicit CommandBuffer();
+        ~CommandBuffer();
 
-        virtual void Begin() = 0;
-        virtual void End() = 0;
+        void Begin();
+        void End();
 
-        virtual void BeginRendering(const RenderingInfo& info, uint32_t imageIndex) = 0;
-        virtual void EndRendering(uint32_t imageIndex) = 0;
+        void BeginRendering(const RenderingInfo& info, uint32_t imageIndex);
+        void EndRendering(uint32_t imageIndex);
 
-        virtual void BindPipeline(Pipeline* pipeline) = 0;
-        virtual void Draw(uint32_t vertexCount, uint32_t width, uint32_t height) = 0;
+        void BindPipeline(Pipeline* pipeline);
+        void Draw(uint32_t vertexCount, uint32_t width, uint32_t height);
+
+    private:
+        struct Impl;
+        std::unique_ptr<Impl> m_impl;
     };
 }
 

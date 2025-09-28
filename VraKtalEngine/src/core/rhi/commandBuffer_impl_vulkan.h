@@ -5,35 +5,31 @@
 #include <core/rhi/commandBuffer.h>
 #include <vulkan/vulkan.h>
 
-using namespace core::rhi;
+namespace core::rhi::vulkan { class GpuDeviceVulkan; } // TODO : Remove once refacto finished
 
-namespace core::rhi::vulkan
+namespace core::rhi
 {
-    class GpuDeviceVulkan;
-
-    class CommandBufferVulkan final : public CommandBuffer
+    struct CommandBuffer::Impl
     {
-    public:
-        explicit CommandBufferVulkan(GpuDeviceVulkan& _device);
-        ~CommandBufferVulkan() override;
+        vulkan::GpuDeviceVulkan& device; // TODO : Remove namespace once refacto finished
+        VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+        VkCommandPool pool;
 
-        void Begin() override;
-        void End() override;
+        Impl(vulkan::GpuDeviceVulkan& _device);
+        ~Impl();
 
-        void BeginRendering(const RenderingInfo& info, uint32_t imageIndex) override;
-        void EndRendering(uint32_t imageIndex) override;
-        
-        void BindPipeline(Pipeline* pipeline) override;
-        void Draw(uint32_t vertexCount, uint32_t width, uint32_t height) override;
+        void Begin();
+        void End();
+
+        void BeginRendering(const RenderingInfo& info, uint32_t imageIndex);
+        void EndRendering(uint32_t imageIndex);
+
+        void BindPipeline(Pipeline* pipeline);
+        void Draw(uint32_t vertexCount, uint32_t width, uint32_t height);
 
         void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 
         VkCommandBuffer GetNative() const { return m_commandBuffer; }
-    
-    private:
-        GpuDeviceVulkan& m_device;
-        VkCommandBuffer m_commandBuffer = VK_NULL_HANDLE;
-        VkCommandPool m_pool;
     };
 }
 
