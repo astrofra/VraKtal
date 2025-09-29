@@ -3,6 +3,8 @@
 #include "../src/core/rhi/pipeline_impl_vulkan.h"
 #include "../src/core/rhi/image_impl_vulkan.h"
 
+#include <core/rhi/renderingInfo.h>
+
 #include <stdexcept>
 
 using namespace core::rhi;
