@@ -15,16 +15,6 @@ void CommandBuffer::EndRendering(uint32_t imageIndex) { m_impl->EndRendering(ima
 void CommandBuffer::BindPipeline(Pipeline* pipeline) { m_impl->BindPipeline(pipeline); }
 void CommandBuffer::Draw(uint32_t vertexCount, uint32_t width, uint32_t height) { m_impl->Draw(vertexCount, width, height); }
 
-CommandBuffer::CommandBuffer(void* device)
-{
-    m_impl = std::make_unique<Impl>(reinterpret_cast<VkDevice>(device));
-}
-
-CommandBuffer::~CommandBuffer()
-{
-
-}
-
 CommandBuffer::Impl::Impl(vulkan::GpuDeviceVulkan& _device) // TODO : Remove vulkan namespace once refacto on GPUDevice has been done.
     : m_device(_device)
 {

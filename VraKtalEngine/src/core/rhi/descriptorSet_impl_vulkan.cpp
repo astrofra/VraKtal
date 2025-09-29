@@ -1,36 +1,11 @@
 #include "../src/core/rhi/descriptorSet_impl_vulkan.h"
-#include "../src/core/rhi/image_impl_vulkan.h"
-
-#include <core/rhi/buffer.h>
+#include "../src/core/rhi/buffer_impl_vulkan.h"
 
 #include <stdexcept>
 
-using namespace core::rhi;
+using namespace core::rhi::vulkan;
 
-DescriptorSetLayout::DescriptorSetLayout(void* device, const DescriptorSetLayoutDesc& desc)
-{
-	m_impl = std::make_unique<Impl>(reinterpret_cast<VkDevice>(device), desc);
-}
-
-DescriptorSetLayout::~DescriptorSetLayout() = default;
-
-DescriptorSet::DescriptorSet(void* device, void* pool, const DescriptorSetLayoutDesc& layoutDesc)
-{
-	m_impl = std::make_unique<Impl>(
-		reinterpret_cast<VkDevice>(device),
-		reinterpret_cast<VkDescriptorPool>(pool),
-		layoutDesc
-	);
-}
-
-DescriptorSet::~DescriptorSet() = default;
-
-void DescriptorSet::BindBuffer(uint32_t binding, Buffer* buffer, size_t offset, size_t range)
-{
-	m_impl->BindBuffer(binding, buffer, offset, range);
-}
-
-VkDescriptorType core::rhi::ToVkDescriptorType(DescriptorType type)
+VkDescriptorType core::rhi::vulkan::ToVkDescriptorType(DescriptorType type)
 {
 	switch (type)
 	{
@@ -41,7 +16,7 @@ VkDescriptorType core::rhi::ToVkDescriptorType(DescriptorType type)
 	}
 }
 
-VkShaderStageFlags core::rhi::ToVkShaderStage(ShaderStage stage)
+VkShaderStageFlags core::rhi::vulkan::ToVkShaderStage(ShaderStage stage)
 {
 	switch (stage)
 	{
@@ -52,8 +27,8 @@ VkShaderStageFlags core::rhi::ToVkShaderStage(ShaderStage stage)
 	}
 }
 
-DescriptorSetLayout::Impl::Impl(VkDevice _device, const DescriptorSetLayoutDesc& desc)
-	: device(_device)
+DescriptorSetLayoutVulkan::DescriptorSetLayoutVulkan(VkDevice device, const DescriptorSetLayoutDesc& desc)
+	: m_device(device)
 {
 	std::vector<VkDescriptorSetLayoutBinding> bindings;
 	bindings.reserve(desc.bindings.size());
@@ -75,59 +50,63 @@ DescriptorSetLayout::Impl::Impl(VkDevice _device, const DescriptorSetLayoutDesc&
 	layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
 	layoutInfo.pBindings = bindings.data();
 
-	if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &layout) != VK_SUCCESS)
+	if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_layout) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create Vulkan desciptor set layout");
 	}
 }
 
-DescriptorSetLayout::Impl::~Impl()
+DescriptorSetLayoutVulkan::~DescriptorSetLayoutVulkan()
 {
-	if (layout != VK_NULL_HANDLE)
+	if (m_layout != VK_NULL_HANDLE)
 	{
-		vkDestroyDescriptorSetLayout(device, layout, nullptr);
+		vkDestroyDescriptorSetLayout(m_device, m_layout, nullptr);
 	};
 }
 
-DescriptorSet::Impl::Impl(VkDevice device, VkDescriptorPool pool, DescriptorSetLayout* layout)
-	: device(device), layout(layout)
+DescriptorSetVulkan::DescriptorSetVulkan(VkDevice device, VkDescriptorPool pool, DescriptorSetLayoutVulkan* layout)
+	: m_device(device), m_layout(layout)
 {
 	VkDescriptorSetAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocInfo.descriptorPool = pool;
 	allocInfo.descriptorSetCount = 1;
-	VkDescriptorSetLayout layouts[] = { layout->m_impl->layout };
+	VkDescriptorSetLayout layouts[] = { layout->GetHandle() };
 	allocInfo.pSetLayouts = layouts;
 
-	if (vkAllocateDescriptorSets(device, &allocInfo, &set) != VK_SUCCESS)
+	if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_set) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to allocate Vulkan descriptor set");
 	}
 }
 
-DescriptorSet::Impl::~Impl()
+DescriptorSetVulkan::~DescriptorSetVulkan()
 {
 
 }
 
-void DescriptorSet::Impl::BindBuffer(uint32_t binding, Buffer* buffer, size_t offset, size_t range)
+void DescriptorSetVulkan::BindBuffer(uint32_t binding, Buffer* buffer, size_t offset, size_t range)
 {
-
-	if(!buffer)
+	auto* vkBuffer = dynamic_cast<BufferVulkan*>(buffer);
+	
+	if(!vkBuffer)
 	{
 		throw std::runtime_error("BindBuffer: buffer is not a Vulkan Buffer");
 	}
 
 	VkDescriptorBufferInfo bufferInfo{};
-	buffer->GetDescriptorInfo(offset, range, &bufferInfo);
+	bufferInfo.buffer = vkBuffer->GetHandle();
+	bufferInfo.offset = offset;
+	bufferInfo.range = range;
 
-	VkWriteDescriptorSet write{ .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
-	write.dstSet = set;
+	VkWriteDescriptorSet write{};
+	write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	write.dstSet = m_set;
 	write.dstBinding = binding;
 	write.dstArrayElement = 0;
 	write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	write.descriptorCount = 1;
 	write.pBufferInfo = &bufferInfo;
 
-	vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+	vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
 }

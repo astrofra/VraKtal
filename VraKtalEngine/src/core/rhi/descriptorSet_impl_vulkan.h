@@ -3,34 +3,44 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+
 #include <core/rhi/descriptorSet.h>
+#include <core/rhi/buffer.h>
+#include <core/rhi/image.h>
 
-namespace core::rhi
+namespace core::rhi::vulkan
 {
-    VkDescriptorType ToVkDescriptorType(DescriptorType type);
-    VkShaderStageFlags ToVkShaderStage(ShaderStage stage);
+	VkDescriptorType ToVkDescriptorType(DescriptorType type);
+	VkShaderStageFlags ToVkShaderStage(ShaderStage stage);
 
-    struct DescriptorSetLayout::Impl
-    {
-        Impl(VkDevice device, const DescriptorSetLayoutDesc& desc);
-        ~Impl();
+	class DescriptorSetLayoutVulkan
+	{
+	public:
+		DescriptorSetLayoutVulkan(VkDevice device, const DescriptorSetLayoutDesc& desc);
+		~DescriptorSetLayoutVulkan();
 
-        VkDevice device;
-        VkDescriptorSetLayout layout = VK_NULL_HANDLE;
-    };
+		VkDescriptorSetLayout GetHandle() const { return m_layout; }
 
-    struct DescriptorSet::Impl
-    {
-        Impl(VkDevice device, VkDescriptorPool pool, DescriptorSetLayout* layout);
-        ~Impl();
+	private:
+		VkDevice m_device;
+		VkDescriptorSetLayout m_layout = VK_NULL_HANDLE;
+	};
 
-        void BindBuffer(uint32_t binding, Buffer* buffer, size_t offset, size_t range);
-        void BindImage(uint32_t binding, Image* image, const ImageUsage& usage); // TODO : Implement this later.
+	class DescriptorSetVulkan : public DescriptorSet
+	{
+	public:
+		DescriptorSetVulkan(VkDevice device, VkDescriptorPool pool, DescriptorSetLayoutVulkan* layout);
+		~DescriptorSetVulkan() override;
 
-        VkDevice device;
-        VkDescriptorSet set = VK_NULL_HANDLE;
-        DescriptorSetLayout* layout = nullptr;
-    };
+		void BindBuffer(uint32_t binding, Buffer* buffer, size_t offset, size_t range) override;
+		void BindImage(uint32_t binding, Image* image, const ImageUsage& usage) override;
+		
+		VkDescriptorSet GetHandle() const { return m_set; }
+	private:
+		VkDevice m_device;
+		VkDescriptorSet m_set = VK_NULL_HANDLE;
+		DescriptorSetLayoutVulkan* m_layout = nullptr;
+	};
 }
 
 #endif //VRAKTAL_CORE_RHI_DESCRIPTOR_SET_VK_H

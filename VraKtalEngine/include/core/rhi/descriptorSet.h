@@ -4,14 +4,12 @@
 
 #include <cstdint>
 #include <vector>
-#include <memory>
 
+#include <core/rhi/buffer.h>
 #include <core/rhi/image.h>
 
 namespace core::rhi
 {
-	class Buffer;
-
 	enum class DescriptorType
 	{
 		UniformBuffer, 
@@ -38,31 +36,13 @@ namespace core::rhi
 		std::vector<DescriptorBinding> bindings;
 	};
 
-	class DescriptorSetLayout
-	{
-	public:
-		explicit DescriptorSetLayout(void* device, const DescriptorSetLayoutDesc& desc);
-		~DescriptorSetLayout();
-
-	private:
-		struct Impl;
-		std::unique_ptr<Impl> m_impl;
-
-		friend class DescriptorSet;
-	};
-
 	class DescriptorSet
 	{
 	public:
-		explicit DescriptorSet(void* device, void* pool, const DescriptorSetLayoutDesc& layoutDesc);
-		~DescriptorSet();
+		virtual ~DescriptorSet() = default;
 
-		void BindBuffer(uint32_t binding, Buffer* buffer, size_t offset, size_t range);
-		void BindImage(uint32_t binding, Image* image, const ImageUsage& usage);
-
-	private:
-		struct Impl;
-		std::unique_ptr<Impl> m_impl;
+		virtual void BindBuffer(uint32_t binding, Buffer* buffer, size_t offset, size_t range) = 0;
+		virtual void BindImage(uint32_t binding, Image* image, const ImageUsage& usage) = 0;
 	};
 }
 

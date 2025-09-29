@@ -4,16 +4,16 @@
 
 #include <memory>
 #include <cstdint>
+#include <core/rhi/renderingInfo.h>
 
 namespace core::rhi
 {
     class Pipeline;
-    class RenderingInfo;
-
+    
     class CommandBuffer 
     {
     public:
-        explicit CommandBuffer(void* device);
+        CommandBuffer();
         ~CommandBuffer();
 
         void Begin();

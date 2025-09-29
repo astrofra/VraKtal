@@ -5,26 +5,11 @@
 
 using namespace core::rhi;
 
+Buffer::~Buffer() = default;
+
 void* Buffer::Map() { return m_impl->Map(); }
 void Buffer::Unmap() { m_impl->Unmap(); }
 void Buffer::Update(const void* data, size_t size, size_t offset) { m_impl->Update(data, size, offset); }
-
-Buffer::Buffer(const BufferDesc& desc)
-{
-	extern VkDevice vulkanDevice;
-	extern VkPhysicalDevice vulkanPhysicalDevice;
-	m_impl = std::make_unique<Impl>(vulkanDevice, vulkanPhysicalDevice, desc);
-}
-
-Buffer::~Buffer() = default;
-
-void Buffer::GetDescriptorInfo(size_t offset, size_t range, void* outInfo) const
-{
-	VkDescriptorBufferInfo* info = reinterpret_cast<VkDescriptorBufferInfo*>(outInfo);
-	info->buffer = m_impl->buffer;
-	info->offset = offset;
-	info->range = range;
-}
 
 VkBufferUsageFlags core::rhi::ToVkBufferUsage(BufferUsage usage)
 {
@@ -51,6 +36,13 @@ VkMemoryPropertyFlags core::rhi::ToVkMemoryUsage(MemoryUsage memory)
 		default:
 			return 0;
 	}
+}
+
+Buffer::Buffer(const BufferDesc& desc)
+{
+	extern VkDevice vulkanDevice;
+	extern VkPhysicalDevice vulkanPhysicalDevice;
+	m_impl = std::make_unique<Impl>(vulkanDevice, vulkanPhysicalDevice, desc);
 }
 
 Buffer::Impl::Impl(VkDevice device, VkPhysicalDevice physicalDevice, const BufferDesc& desc)
