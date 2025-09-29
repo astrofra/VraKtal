@@ -4,11 +4,18 @@
 #include "../src/core/rhi/image_impl_vulkan.h"
 
 #include <stdexcept>
-#include <vector>
 
+using namespace core::rhi;
 using namespace core::rhi::vulkan;
 
-CommandBufferVulkan::CommandBufferVulkan(GpuDeviceVulkan& _device)
+void CommandBuffer::Begin() { m_impl->Begin(); }
+void CommandBuffer::End() { m_impl->End(); }
+void CommandBuffer::BeginRendering(const RenderingInfo& info, uint32_t imageIndex) { m_impl->BeginRendering(info, imageIndex); }
+void CommandBuffer::EndRendering(uint32_t imageIndex) { m_impl->EndRendering(imageIndex); }
+void CommandBuffer::BindPipeline(Pipeline* pipeline) { m_impl->BindPipeline(pipeline); }
+void CommandBuffer::Draw(uint32_t vertexCount, uint32_t width, uint32_t height) { m_impl->Draw(vertexCount, width, height); }
+
+CommandBuffer::Impl::Impl(vulkan::GpuDeviceVulkan& _device) // TODO : Remove vulkan namespace once refacto on GPUDevice has been done.
     : m_device(_device)
 {
     VkCommandPoolCreateInfo poolInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
@@ -24,10 +31,12 @@ CommandBufferVulkan::CommandBufferVulkan(GpuDeviceVulkan& _device)
     allocInfo.commandBufferCount = 1;
 
     if (vkAllocateCommandBuffers(m_device.Device(), &allocInfo, &m_commandBuffer) != VK_SUCCESS)
+    {
         throw std::runtime_error("Failed to allocate command buffer");
+    }
 }
 
-CommandBufferVulkan::~CommandBufferVulkan()
+CommandBuffer::Impl::~Impl()
 {
     if (m_commandBuffer != VK_NULL_HANDLE)
     {
@@ -39,7 +48,7 @@ CommandBufferVulkan::~CommandBufferVulkan()
     }
 }
 
-void CommandBufferVulkan::Begin()
+void CommandBuffer::Impl::Begin()
 {
     vkResetCommandBuffer(m_commandBuffer, 0);
 
@@ -47,10 +56,12 @@ void CommandBufferVulkan::Begin()
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
     if (vkBeginCommandBuffer(m_commandBuffer, &beginInfo) != VK_SUCCESS)
+    {
         throw std::runtime_error("Failed to begin recording command buffer");
+    }
 }
 
-void CommandBufferVulkan::End()
+void CommandBuffer::Impl::End()
 {
     if (vkEndCommandBuffer(m_commandBuffer) != VK_SUCCESS)
     {
@@ -58,7 +69,7 @@ void CommandBufferVulkan::End()
     }
 }
 
-void CommandBufferVulkan::BeginRendering(const RenderingInfo& info, uint32_t imageIndex)
+void CommandBuffer::Impl::BeginRendering(const RenderingInfo& info, uint32_t imageIndex)
 {
     std::vector<VkRenderingAttachmentInfo> attachments;
     auto* swapImg = static_cast<ImageVulkan*>(m_device.GetSwapchainImage(imageIndex));
@@ -99,7 +110,7 @@ void CommandBufferVulkan::BeginRendering(const RenderingInfo& info, uint32_t ima
     vkCmdBeginRendering(m_commandBuffer, &vkInfo);
 }
 
-void CommandBufferVulkan::EndRendering(uint32_t imageIndex)
+void CommandBuffer::Impl::EndRendering(uint32_t imageIndex)
 {
     auto* swapImg = static_cast<ImageVulkan*>(m_device.GetSwapchainImage(imageIndex));
 
@@ -115,13 +126,13 @@ void CommandBufferVulkan::EndRendering(uint32_t imageIndex)
     swapImg->SetLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 }
 
-void CommandBufferVulkan::BindPipeline(Pipeline* pipeline)
+void CommandBuffer::Impl::BindPipeline(Pipeline* pipeline)
 {
     auto* vkPipeline = reinterpret_cast<PipelineVulkan*>(pipeline);
     vkCmdBindPipeline(m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline->GetNative());
 }
 
-void CommandBufferVulkan::Draw(uint32_t vertexCount, uint32_t width, uint32_t height)
+void CommandBuffer::Impl::Draw(uint32_t vertexCount, uint32_t width, uint32_t height)
 {
     VkViewport viewport{};
     viewport.x = 0.f;
@@ -140,7 +151,7 @@ void CommandBufferVulkan::Draw(uint32_t vertexCount, uint32_t width, uint32_t he
     vkCmdDraw(m_commandBuffer, vertexCount, 1, 0, 0);
 }
 
-void CommandBufferVulkan::TransitionImageLayout(VkImage image, VkFormat, VkImageLayout oldLayout, VkImageLayout newLayout)
+void CommandBuffer::Impl::TransitionImageLayout(VkImage image, VkFormat, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
     VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
     barrier.oldLayout = oldLayout;
