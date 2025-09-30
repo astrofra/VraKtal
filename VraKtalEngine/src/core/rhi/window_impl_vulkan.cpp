@@ -4,7 +4,7 @@
 
 #pragma comment(lib, "glfw3.lib")
 
-using namespace core::rhi::vulkan;
+using namespace core::rhi;
 
 WindowVulkan::WindowVulkan(uint32_t _width, uint32_t _height, const char* _title, bool _resizable)
     : m_title(_title), m_width(_width), m_height(_height)

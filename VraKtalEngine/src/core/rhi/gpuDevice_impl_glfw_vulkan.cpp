@@ -1,7 +1,7 @@
 ﻿#include "../src/core/rhi/gpuDevice_impl_glfw_vulkan.h"
 #include "../src/core/rhi/window_impl_vulkan.h"
 #include "../src/core/rhi/commandBuffer_impl_vulkan.h"
-#include "../src/core/rhi/image_impl_vulkan.h"
+#include "../src/core/rhi/gpuImage_impl_vulkan.h"
 
 #include "../src/vkb/VkBootstrap.h"
 
@@ -14,9 +14,21 @@
 #include <array>
 #include <limits>
 
-using namespace core::rhi::vulkan;
+using namespace core::rhi;
 
-GpuDeviceVulkan::GpuDeviceVulkan(const WindowVulkan& _window)
+GpuDevice::GpuDevice(Window& window)
+{
+    auto& vulkanWindow = static_cast<WindowVulkan&>(window); // TODO : Remove cast once refacto done. 
+    m_impl = new Impl(vulkanWindow);
+}
+
+GpuDevice::~GpuDevice()
+{
+    delete m_impl;
+    m_impl = nullptr;
+}
+
+GpuDevice::Impl::Impl(const WindowVulkan& _window)
 {
     CreateInstance();
     CreateSurface(_window);
@@ -29,7 +41,7 @@ GpuDeviceVulkan::GpuDeviceVulkan(const WindowVulkan& _window)
     CreateSyncObjects();
 }
 
-GpuDeviceVulkan::~GpuDeviceVulkan()
+GpuDevice::Impl::~Impl()
 {
     WaitIdle();
     DestroySyncObjects();
@@ -43,22 +55,22 @@ GpuDeviceVulkan::~GpuDeviceVulkan()
     if (m_instance) vkDestroyInstance(m_instance, nullptr);
 }
 
-void GpuDeviceVulkan::WaitIdle()
+void GpuDevice::Impl::WaitIdle()
 {
     vkDeviceWaitIdle(m_device);
 }
 
-CommandBuffer* GpuDeviceVulkan::CreateCommandBuffer()
+CommandBuffer* GpuDevice::Impl::CreateCommandBuffer()
 {
-    return reinterpret_cast<CommandBuffer*>(new CommandBufferVulkan(*this));
+    return new CommandBuffer(*reinterpret_cast<GpuDevice*>(this));
 }
 
-void GpuDeviceVulkan::DestroyCommandBuffer(CommandBuffer* commandBuffer)
+void GpuDevice::Impl::DestroyCommandBuffer(CommandBuffer* commandBuffer)
 {
-    delete reinterpret_cast<CommandBufferVulkan*>(commandBuffer);
+    delete commandBuffer;
 }
 
-void GpuDeviceVulkan::RecreateSwapchain()
+void GpuDevice::Impl::RecreateSwapchain()
 {
     WaitIdle();
     DeleteWrappedImages();
@@ -67,7 +79,7 @@ void GpuDeviceVulkan::RecreateSwapchain()
     WrapSwapchainImages();
 }
 
-void GpuDeviceVulkan::CreateInstance()
+void GpuDevice::Impl::CreateInstance()
 {
     vkb::InstanceBuilder builder;
     auto instance = builder
@@ -85,7 +97,7 @@ void GpuDeviceVulkan::CreateInstance()
     m_instance = instance.value();
 }
 
-void GpuDeviceVulkan::CreateSurface(const WindowVulkan& _window)
+void GpuDevice::Impl::CreateSurface(const WindowVulkan& _window)
 {
     if (glfwCreateWindowSurface(m_instance, _window.GlfwHandle(), nullptr, &m_surface) != VK_SUCCESS)
     {
@@ -93,7 +105,7 @@ void GpuDeviceVulkan::CreateSurface(const WindowVulkan& _window)
     }
 }
 
-void GpuDeviceVulkan::PickPhysicalDevice()
+void GpuDevice::Impl::PickPhysicalDevice()
 {
     VkPhysicalDeviceVulkan13Features f13 { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES};
     f13.dynamicRendering = VK_TRUE;
@@ -116,7 +128,7 @@ void GpuDeviceVulkan::PickPhysicalDevice()
     m_physicalDevice = physical_device.value();
 }
 
-void GpuDeviceVulkan::CreateLogicalDevice()
+void GpuDevice::Impl::CreateLogicalDevice()
 {
     vkb::DeviceBuilder builder{ m_physicalDevice };
     auto device = builder.build();
@@ -131,7 +143,7 @@ void GpuDeviceVulkan::CreateLogicalDevice()
     m_graphicsQueueFamily = device.value().get_queue_index(vkb::QueueType::graphics).value();
 }
 
-void GpuDeviceVulkan::CreateAllocator()
+void GpuDevice::Impl::CreateAllocator()
 {
     VmaAllocatorCreateInfo alloc_info{};
     alloc_info.instance = m_instance;
@@ -145,7 +157,7 @@ void GpuDeviceVulkan::CreateAllocator()
     }
 }
 
-void GpuDeviceVulkan::CreateSwapchain(uint32_t _width, uint32_t _height)
+void GpuDevice::Impl::CreateSwapchain(uint32_t _width, uint32_t _height)
 {
     vkb::SwapchainBuilder swapchainBuilder { m_physicalDevice, m_device, m_surface };
     auto swapchain = swapchainBuilder
@@ -168,7 +180,7 @@ void GpuDeviceVulkan::CreateSwapchain(uint32_t _width, uint32_t _height)
     m_swapFormat = value.image_format;
 }
 
-void GpuDeviceVulkan::DestroySwapchain()
+void GpuDevice::Impl::DestroySwapchain()
 {
     for (auto v : m_swapImageViews)
     {
@@ -185,7 +197,7 @@ void GpuDeviceVulkan::DestroySwapchain()
     }
 }
 
-void GpuDeviceVulkan::CreateCommandPool()
+void GpuDevice::Impl::CreateCommandPool()
 {
     VkCommandPoolCreateInfo commandPool_info{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
     commandPool_info.queueFamilyIndex = m_graphicsQueueFamily;
@@ -197,7 +209,7 @@ void GpuDeviceVulkan::CreateCommandPool()
     }
 }
 
-void GpuDeviceVulkan::DestroyCommandPool()
+void GpuDevice::Impl::DestroyCommandPool()
 {
     if (m_cmdPool)
     {
@@ -206,7 +218,7 @@ void GpuDeviceVulkan::DestroyCommandPool()
     }
 }
 
-void GpuDeviceVulkan::CreateSyncObjects()
+void GpuDevice::Impl::CreateSyncObjects()
 {
     m_frames.resize(OVERLAPPED_FRAMES);
     VkSemaphoreCreateInfo semInfo{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
@@ -224,7 +236,7 @@ void GpuDeviceVulkan::CreateSyncObjects()
     }
 }
 
-void GpuDeviceVulkan::DestroySyncObjects()
+void GpuDevice::Impl::DestroySyncObjects()
 {
     for (auto& f : m_frames)
     {
@@ -235,18 +247,23 @@ void GpuDeviceVulkan::DestroySyncObjects()
     m_frames.clear();
 }
 
-void GpuDeviceVulkan::WrapSwapchainImages()
+void GpuDevice::Impl::WrapSwapchainImages()
 {
     DeleteWrappedImages();
     m_swapchainImageWrappers.reserve(m_swapImages.size());
     for (size_t i = 0; i < m_swapImages.size(); ++i)
     {
-        auto* wrapper = new ImageVulkan(*this, m_swapImages[i], m_swapImageViews[i], m_swapFormat ,m_swapExtent.width, m_swapExtent.height);
+        auto impl = std::make_unique<GpuImage::Impl>(
+            m_device, m_swapImages[i], m_swapImageViews[i], m_swapFormat,
+            m_swapExtent.width, m_swapExtent.height
+        );
+
+        auto* wrapper = new GpuImage(std::move(impl));
         m_swapchainImageWrappers.push_back(wrapper);
     }
 }
 
-void GpuDeviceVulkan::DeleteWrappedImages()
+void GpuDevice::Impl::DeleteWrappedImages()
 {
     for (auto* img : m_swapchainImageWrappers)
     {
@@ -255,7 +272,7 @@ void GpuDeviceVulkan::DeleteWrappedImages()
     m_swapchainImageWrappers.clear();
 }
 
-bool GpuDeviceVulkan::BeginFrame(uint32_t& imageIndex)
+bool GpuDevice::Impl::BeginFrame(uint32_t& imageIndex)
 {
     FrameSync& sync = m_frames[m_currentFrame];
 
@@ -277,7 +294,7 @@ bool GpuDeviceVulkan::BeginFrame(uint32_t& imageIndex)
     return true;
 }
 
-void GpuDeviceVulkan::EndFrame(uint32_t imageIndex, VkCommandBuffer cmd)
+void GpuDevice::Impl::EndFrame(uint32_t imageIndex, VkCommandBuffer cmd)
 {
     FrameSync& sync = m_frames[m_currentFrame];
 
@@ -316,12 +333,13 @@ void GpuDeviceVulkan::EndFrame(uint32_t imageIndex, VkCommandBuffer cmd)
     m_currentFrame = (m_currentFrame + 1) % OVERLAPPED_FRAMES;
 }
 
-Image* GpuDeviceVulkan::GetSwapchainImage(uint32_t index) const
+GpuImage* GpuDevice::Impl::GetSwapchainImage(uint32_t index) const
 {
     return m_swapchainImageWrappers[index];
 }
 
-void GpuDeviceVulkan::UploadToBuffer(VkBuffer dst, const void* data, VkDeviceSize size)
+
+void GpuDevice::Impl::UploadToBuffer(VkBuffer dst, const void* data, VkDeviceSize size)
 {
     VkBuffer stagingBuffer;
     VmaAllocation stagingAlloc;
@@ -373,7 +391,7 @@ void GpuDeviceVulkan::UploadToBuffer(VkBuffer dst, const void* data, VkDeviceSiz
     vmaDestroyBuffer(m_allocator, stagingBuffer, stagingAlloc);
 }
 
-VkFormat GpuDeviceVulkan::FindDepthFormat()
+VkFormat GpuDevice::Impl::FindDepthFormat()
 {
     std::vector<VkFormat> candidates = {
         VK_FORMAT_D32_SFLOAT,
@@ -395,7 +413,7 @@ VkFormat GpuDeviceVulkan::FindDepthFormat()
     throw std::runtime_error("Failed to find supported depth format");
 }
 
-void GpuDeviceVulkan::CreateDepthBuffer()
+void GpuDevice::Impl::CreateDepthBuffer()
 {
     m_depthFormat = FindDepthFormat();
 
@@ -436,7 +454,7 @@ void GpuDeviceVulkan::CreateDepthBuffer()
     }
 }
 
-void GpuDeviceVulkan::DestroyDepthBuffer()
+void GpuDevice::Impl::DestroyDepthBuffer()
 {
     if (m_depthImageView) 
     {

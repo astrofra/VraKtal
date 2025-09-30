@@ -2,22 +2,28 @@
 #define VRAKTAL_CORE_RHI_GPUDEVICE_H
 #pragma once
 
+#include <cstdint>
+
 namespace core::rhi
 {
-    class Window;
     class CommandBuffer;
-    
+    class Window;
+
     class GpuDevice
     {
+        struct Impl;
+        Impl* m_impl = nullptr;
     public:
-        virtual ~GpuDevice() = default;
+        GpuDevice(Window& window);
+        ~GpuDevice();
 
-        virtual CommandBuffer* CreateCommandBuffer() = 0;
-        virtual void DestroyCommandBuffer(CommandBuffer* _commandBuffer) = 0;
+        CommandBuffer* CreateCommandBuffer();
+        void DestroyCommandBuffer(CommandBuffer* _commandBuffer);
 
-        virtual void RecreateSwapchain() = 0;
-    private:
+        void RecreateSwapchain();
+
+        Impl& GetImpl();
     };
 }
 
-#endif //VRAKTAL_CORE_RHI_GPUDEVICE_H
+#endif // VRAKTAL_CORE_RHI_GPUDEVICE_H

@@ -9,7 +9,10 @@ namespace core::rhi
 {
     struct GpuImage::Impl
     {
-        Impl(const GpuImageDesc& desc);
+        Impl(GpuDevice& device, const GpuImageDesc& desc);
+
+        Impl(VkDevice device, VkImage image, VkImageView view, VkFormat format, uint32_t width, uint32_t height, bool ownsImage = true);
+
         ~Impl();
 
         uint32_t Width() const { return m_width; }
@@ -32,6 +35,7 @@ namespace core::rhi
         uint32_t m_width = 0, m_height = 0;
 
         mutable VkImageLayout m_currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        bool m_ownsImage = true;
     };
 }
 

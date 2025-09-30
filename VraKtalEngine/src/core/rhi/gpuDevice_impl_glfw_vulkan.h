@@ -3,62 +3,38 @@
 #pragma once
 
 #include <core/rhi/gpuDevice.h>
-#include <core/rhi/image.h>
+#include <core/rhi/gpuImage.h>
 
-#include "../src/vkb/VkBootstrap.h"
-
-#include <vma/vk_mem_alloc.h>
 #include <vector>
 
-using namespace core::rhi;
+#include <vulkan/vulkan.h>
+#include "../src/vkb/VkBootstrap.h"
+#include <vma/vk_mem_alloc.h>
 
-namespace core::rhi::vulkan
+namespace core::rhi
 {
     class WindowVulkan;
-    class CommandBufferVulkan;
-    class ImageVulkan;
 
-    class GpuDeviceVulkan final : public GpuDevice
+    struct GpuDevice::Impl
     {
-    public:
-        explicit GpuDeviceVulkan(const WindowVulkan& _window);
-        ~GpuDeviceVulkan() override;
+        explicit Impl(const WindowVulkan& window);
+        ~Impl();
 
-        void WaitIdle();
+        CommandBuffer* CreateCommandBuffer();
+        void DestroyCommandBuffer(CommandBuffer* cmd);
 
-        CommandBuffer* CreateCommandBuffer() override;
-        void DestroyCommandBuffer(CommandBuffer* _commandBuffer) override;
-
-        void RecreateSwapchain() override;
+        void RecreateSwapchain();
+        void WrapSwapchainImages();
 
         bool BeginFrame(uint32_t& imageIndex);
         void EndFrame(uint32_t imageIndex, VkCommandBuffer cmd);
 
-        void WrapSwapchainImages();
-
-        VkDevice Device() const { return m_device; }
-        VkPhysicalDevice PhysicalDevice() const { return m_physicalDevice; }
-        VkQueue GraphicsQueue() const { return m_graphicsQueue; }
-		VkCommandPool CommandPool() const { return m_cmdPool; }
-        uint32_t GraphicsQueueFamily() const { return m_graphicsQueueFamily; }
-        VmaAllocator Allocator() const { return m_allocator; }
-
-        VkFormat SwapFormat() const { return m_swapFormat; }
-        VkExtent2D SwapExtent() const { return m_swapExtent; }
-
-        uint32_t CurrentFrame() const { return m_currentFrame; }
-
-        Image* GetSwapchainImage(uint32_t index) const;
         void UploadToBuffer(VkBuffer dst, const void* data, VkDeviceSize size);
-
-        VkFormat DepthFormat() const { return m_depthFormat; }
-        VkImageView DepthImageView() const { return m_depthImageView; }
-        VkFormat FindDepthFormat();
-
         void CreateDepthBuffer();
-		void DestroyDepthBuffer();
+        void DestroyDepthBuffer();
+        VkFormat FindDepthFormat();
+        void WaitIdle();
 
-    private:
         void CreateInstance();
         void CreateSurface(const WindowVulkan& window);
         void PickPhysicalDevice();
@@ -71,6 +47,8 @@ namespace core::rhi::vulkan
         void CreateSyncObjects();
         void DestroySyncObjects();
         void DeleteWrappedImages();
+
+        GpuImage* GetSwapchainImage(uint32_t index) const;
 
         vkb::Instance m_instance;
         VkSurfaceKHR m_surface = VK_NULL_HANDLE;
@@ -87,16 +65,17 @@ namespace core::rhi::vulkan
         VkExtent2D m_swapExtent = {};
         std::vector<VkImage> m_swapImages;
         std::vector<VkImageView> m_swapImageViews;
-
-        std::vector<ImageVulkan*> m_swapchainImageWrappers;
+        std::vector<core::rhi::GpuImage*> m_swapchainImageWrappers;
 
         VkCommandPool m_cmdPool = VK_NULL_HANDLE;
 
-        struct FrameSync {
+        struct FrameSync
+        {
             VkSemaphore imageAvailable = VK_NULL_HANDLE;
             VkSemaphore renderFinished = VK_NULL_HANDLE;
             VkFence inFlight = VK_NULL_HANDLE;
         };
+
         static constexpr int OVERLAPPED_FRAMES = 2;
         std::vector<FrameSync> m_frames;
         uint32_t m_currentFrame = 0;
@@ -104,9 +83,9 @@ namespace core::rhi::vulkan
 
         VkImage m_depthImage = VK_NULL_HANDLE;
         VmaAllocation m_depthAllocation = VK_NULL_HANDLE;
-		VkImageView m_depthImageView = VK_NULL_HANDLE;
-		VkFormat m_depthFormat = VK_FORMAT_D32_SFLOAT;
+        VkImageView m_depthImageView = VK_NULL_HANDLE;
+        VkFormat m_depthFormat = VK_FORMAT_D32_SFLOAT;
     };
 }
 
-#endif //VRAKTAL_CORE_RHI_GPU_DEVICE_VK_H
+#endif // VRAKTAL_CORE_RHI_GPU_DEVICE_VK_H

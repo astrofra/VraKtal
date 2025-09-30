@@ -9,7 +9,7 @@
 
 struct GLFWwindow;
 
-namespace core::rhi::vulkan
+namespace core::rhi
 {
     class WindowVulkan final : public Window
     {

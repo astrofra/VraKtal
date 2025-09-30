@@ -5,23 +5,22 @@
 #include <vulkan/vulkan.h>
 #include <core/rhi/pipeline.h>
 
-namespace core::rhi::vulkan
+namespace core::rhi
 {
-    class GpuDeviceVulkan;
+    class GpuDevice;
 
-    class PipelineVulkan final : public Pipeline
+    struct Pipeline::Impl
     {
-    public:
-        PipelineVulkan(GpuDeviceVulkan& device, VkPipeline pipeline, VkPipelineLayout layout);
-        ~PipelineVulkan() override;
+        Impl(GpuDevice& device, VkPipeline pipeline, VkPipelineLayout layout);
+        ~Impl();
 
         VkPipeline GetNative() const { return m_pipeline; }
         VkPipelineLayout GetLayout() const { return m_layout; }
-    private:
-        GpuDeviceVulkan& m_device;
+
+        GpuDevice& m_device;
         VkPipeline m_pipeline = VK_NULL_HANDLE;
         VkPipelineLayout m_layout = VK_NULL_HANDLE;
     };
 }
 
-#endif //VRAKTAL_CORE_RHI_PIPELINE_VK_H
+#endif // VRAKTAL_CORE_RHI_PIPELINE_VK_H

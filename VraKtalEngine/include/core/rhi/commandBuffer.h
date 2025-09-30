@@ -3,17 +3,18 @@
 #pragma once
 
 #include <memory>
-#include <cstdint>
-#include <core/rhi/renderingInfo.h>
 
 namespace core::rhi
 {
+    struct RenderingInfo;
+
     class Pipeline;
-    
-    class CommandBuffer 
+    class GpuDevice;
+
+    class CommandBuffer
     {
     public:
-        CommandBuffer();
+        CommandBuffer(GpuDevice& device);
         ~CommandBuffer();
 
         void Begin();
@@ -25,10 +26,11 @@ namespace core::rhi
         void BindPipeline(Pipeline* pipeline);
         void Draw(uint32_t vertexCount, uint32_t width, uint32_t height);
 
-    private:
         struct Impl;
+        Impl& GetImpl();
+    private:
         std::unique_ptr<Impl> m_impl;
     };
 }
 
-#endif //VRAKTAL_CORE_RHI_COMMAND_BUFFER_H
+#endif // VRAKTAL_CORE_RHI_COMMAND_BUFFER_H

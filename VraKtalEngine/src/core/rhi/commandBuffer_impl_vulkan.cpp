@@ -1,14 +1,20 @@
 ﻿#include "../src/core/rhi/commandBuffer_impl_vulkan.h"
 #include "../src/core/rhi/gpuDevice_impl_glfw_vulkan.h"
 #include "../src/core/rhi/pipeline_impl_vulkan.h"
-#include "../src/core/rhi/image_impl_vulkan.h"
+#include "../src/core/rhi/gpuImage_impl_vulkan.h"
 
 #include <core/rhi/renderingInfo.h>
-
 #include <stdexcept>
 
 using namespace core::rhi;
-using namespace core::rhi::vulkan;
+
+
+CommandBuffer::CommandBuffer(GpuDevice& device)
+    : m_impl(std::make_unique<Impl>(device))
+{
+}
+
+CommandBuffer::~CommandBuffer() = default;
 
 void CommandBuffer::Begin() { m_impl->Begin(); }
 void CommandBuffer::End() { m_impl->End(); }
@@ -17,14 +23,16 @@ void CommandBuffer::EndRendering(uint32_t imageIndex) { m_impl->EndRendering(ima
 void CommandBuffer::BindPipeline(Pipeline* pipeline) { m_impl->BindPipeline(pipeline); }
 void CommandBuffer::Draw(uint32_t vertexCount, uint32_t width, uint32_t height) { m_impl->Draw(vertexCount, width, height); }
 
-CommandBuffer::Impl::Impl(vulkan::GpuDeviceVulkan& _device) // TODO : Remove vulkan namespace once refacto on GPUDevice has been done.
+CommandBuffer::Impl& CommandBuffer::GetImpl() { return *m_impl; }
+
+CommandBuffer::Impl::Impl(GpuDevice& _device)
     : m_device(_device)
 {
     VkCommandPoolCreateInfo poolInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-    poolInfo.queueFamilyIndex = m_device.GraphicsQueueFamily();
+    poolInfo.queueFamilyIndex = m_device.GetImpl().m_graphicsQueueFamily;
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-    if (vkCreateCommandPool(m_device.Device(), &poolInfo, nullptr, &m_pool) != VK_SUCCESS)
+    if (vkCreateCommandPool(m_device.GetImpl().m_device, &poolInfo, nullptr, &m_pool) != VK_SUCCESS)
         throw std::runtime_error("Failed to create command pool");
 
     VkCommandBufferAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
@@ -32,7 +40,7 @@ CommandBuffer::Impl::Impl(vulkan::GpuDeviceVulkan& _device) // TODO : Remove vul
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = 1;
 
-    if (vkAllocateCommandBuffers(m_device.Device(), &allocInfo, &m_commandBuffer) != VK_SUCCESS)
+    if (vkAllocateCommandBuffers(m_device.GetImpl().m_device, &allocInfo, &m_commandBuffer) != VK_SUCCESS)
     {
         throw std::runtime_error("Failed to allocate command buffer");
     }
@@ -42,11 +50,11 @@ CommandBuffer::Impl::~Impl()
 {
     if (m_commandBuffer != VK_NULL_HANDLE)
     {
-        vkFreeCommandBuffers(m_device.Device(), m_pool, 1, &m_commandBuffer);
+        vkFreeCommandBuffers(m_device.GetImpl().m_device, m_pool, 1, &m_commandBuffer);
     }
     if (m_pool != VK_NULL_HANDLE)
     {
-        vkDestroyCommandPool(m_device.Device(), m_pool, nullptr);
+        vkDestroyCommandPool(m_device.GetImpl().m_device, m_pool, nullptr);
     }
 }
 
@@ -74,12 +82,12 @@ void CommandBuffer::Impl::End()
 void CommandBuffer::Impl::BeginRendering(const RenderingInfo& info, uint32_t imageIndex)
 {
     std::vector<VkRenderingAttachmentInfo> attachments;
-    auto* swapImg = static_cast<ImageVulkan*>(m_device.GetSwapchainImage(imageIndex));
+    auto* swapImg = static_cast<GpuImage*>(m_device.GetImpl().GetSwapchainImage(imageIndex));
 
     for (auto& att : info.colorAttachments)
     {
         VkRenderingAttachmentInfo vkAttachmentInfo{ VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
-        vkAttachmentInfo.imageView = swapImg->View();
+        vkAttachmentInfo.imageView = swapImg->GetImpl().GetView();
         vkAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         vkAttachmentInfo.loadOp = (att.loadOp == LoadOp::Clear) ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
         vkAttachmentInfo.storeOp = (att.storeOp == StoreOp::Store) ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -88,7 +96,7 @@ void CommandBuffer::Impl::BeginRendering(const RenderingInfo& info, uint32_t ima
     }
 
     VkRenderingAttachmentInfo depthAttachment{ VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
-    depthAttachment.imageView = m_device.DepthImageView();
+    depthAttachment.imageView = m_device.GetImpl().m_depthImageView;
     depthAttachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -103,9 +111,9 @@ void CommandBuffer::Impl::BeginRendering(const RenderingInfo& info, uint32_t ima
     vkInfo.pDepthAttachment = &depthAttachment;
 
     TransitionImageLayout(
-        swapImg->GetNative(),
-        swapImg->Format(),
-        swapImg->CurrentLayout(),
+        swapImg->GetImpl().GetNative(),
+        swapImg->GetImpl().Format(),
+        swapImg->GetImpl().CurrentLayout(),
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
     );
 
@@ -114,24 +122,23 @@ void CommandBuffer::Impl::BeginRendering(const RenderingInfo& info, uint32_t ima
 
 void CommandBuffer::Impl::EndRendering(uint32_t imageIndex)
 {
-    auto* swapImg = static_cast<ImageVulkan*>(m_device.GetSwapchainImage(imageIndex));
+    auto* swapImg = static_cast<GpuImage*>(m_device.GetImpl().GetSwapchainImage(imageIndex));
 
     vkCmdEndRendering(m_commandBuffer);
 
     TransitionImageLayout(
-        swapImg->GetNative(),
-        swapImg->Format(),
+        swapImg->GetImpl().GetNative(),
+        swapImg->GetImpl().Format(),
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
     );
 
-    swapImg->SetLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    swapImg->GetImpl().SetLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 }
 
 void CommandBuffer::Impl::BindPipeline(Pipeline* pipeline)
 {
-    auto* vkPipeline = reinterpret_cast<PipelineVulkan*>(pipeline);
-    vkCmdBindPipeline(m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline->GetNative());
+    vkCmdBindPipeline(m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetImpl().GetNative());
 }
 
 void CommandBuffer::Impl::Draw(uint32_t vertexCount, uint32_t width, uint32_t height)

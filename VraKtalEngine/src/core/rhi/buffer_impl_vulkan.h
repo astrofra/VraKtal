@@ -7,24 +7,24 @@
 
 namespace core::rhi
 {
-	VkBufferUsageFlags ToVkBufferUsage(BufferUsage usage);
-	VkMemoryPropertyFlags ToVkMemoryUsage(MemoryUsage memory);
+    VkBufferUsageFlags ToVkBufferUsage(BufferUsage usage);
+    VkMemoryPropertyFlags ToVkMemoryUsage(MemoryUsage memory);
 
-	struct Buffer::Impl
-	{
+    struct Buffer::Impl
+    {
         VkDevice device = VK_NULL_HANDLE;
         VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
         VkBuffer buffer = VK_NULL_HANDLE;
         VkDeviceMemory memory = VK_NULL_HANDLE;
         size_t size = 0;
 
-        Impl(VkDevice dev, VkPhysicalDevice phys, const BufferDesc& desc);
+        Impl(GpuDevice& device, const BufferDesc& desc);
         ~Impl();
 
         void* Map();
         void Unmap();
-        void Update(const void* data, size_t size, size_t offset);
-	};
+        void Update(const void* data, size_t size, size_t offset = 0);
+    };
 }
 
-#endif //VRAKTAL_CORE_RHI_BUFFER_VK_H
+#endif // VRAKTAL_CORE_RHI_BUFFER_VK_H

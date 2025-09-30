@@ -7,12 +7,12 @@
 
 namespace core::rhi
 {
-    namespace vulkan { class GpuDeviceVulkan; class ImageVulkan; class PipelineVulkan; } // TODO : Remove vulkan namespace once refacto has been done.
+    class GpuDevice;
 
     struct CommandBuffer::Impl
     {
     public:
-        Impl(vulkan::GpuDeviceVulkan& device); // TODO : Remove vulkan namespace once refacto has been done.
+        Impl(GpuDevice& device);
         ~Impl();
 
         void Begin();
@@ -24,15 +24,16 @@ namespace core::rhi
         void BindPipeline(Pipeline* pipeline);
         void Draw(uint32_t vertexCount, uint32_t width, uint32_t height);
 
-        void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+        void TransitionImageLayout(VkImage image, VkFormat format,
+            VkImageLayout oldLayout, VkImageLayout newLayout);
 
         VkCommandBuffer GetNative() const { return m_commandBuffer; }
 
     private:
-        vulkan::GpuDeviceVulkan& m_device;
+        GpuDevice& m_device;
         VkCommandBuffer m_commandBuffer = VK_NULL_HANDLE;
         VkCommandPool m_pool = VK_NULL_HANDLE;
     };
 }
 
-#endif //VRAKTAL_CORE_RHI_COMMAND_BUFFER_VK_H
+#endif // VRAKTAL_CORE_RHI_COMMAND_BUFFER_VK_H
