@@ -3,23 +3,22 @@
 #pragma once
 
 #include <core/graphics/meshRenderer.h>
-#include <core/rhi/renderingInfo.h>
+#include <core/rhi/renderer.h>
 
 using namespace core::graphics;
 
-namespace core::rhi::vulkan
+namespace core::rhi
 {
-    class CommandBufferVulkan;
 
-    class RendererVulkan
+    struct Renderer::Impl
     {
     public:
-        explicit RendererVulkan(MeshRenderer* meshRenderer);
+        explicit Impl(MeshRenderer* meshRenderer);
 
-        void Render(CommandBufferVulkan& commandBuffer,
+        void Render(CommandBuffer& commandBuffer,
             const RenderingInfo& info,
             uint32_t imageIndex,
-            const std::vector<GpuMesh>& meshes,
+            const std::vector<core::graphics::GpuMesh>& meshes,
             const glm::mat4& view,
             const glm::mat4& proj);
 
