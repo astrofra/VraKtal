@@ -50,12 +50,12 @@ std::pair<uint32_t, uint32_t> Window::Size() const
     return { m_width, m_height };
 }
 
-const char* core::rhi::Window::Title() const
+const char* core::Window::Title() const
 {
     return m_title.c_str();
 }
 
-GLFWwindow* core::rhi::Window::GlfwHandle() const 
+GLFWwindow* core::Window::GlfwHandle() const 
 {
     return m_window;
 }

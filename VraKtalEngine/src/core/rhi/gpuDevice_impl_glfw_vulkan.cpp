@@ -1,9 +1,11 @@
 ﻿#include "../src/core/rhi/gpuDevice_impl_glfw_vulkan.h"
-#include "../src/core/rhi/window_impl_vulkan.h"
 #include "../src/core/rhi/commandBuffer_impl_vulkan.h"
 #include "../src/core/rhi/gpuImage_impl_vulkan.h"
 
+#include <core/window.h>
+
 #include "../src/vkb/VkBootstrap.h"
+#include <GLFW/glfw3.h>
 
 #define VMA_IMPLEMENTATION
 #include <vma/vk_mem_alloc.h>
@@ -18,8 +20,7 @@ using namespace core::rhi;
 
 GpuDevice::GpuDevice(Window& window)
 {
-    auto& vulkanWindow = static_cast<WindowVulkan&>(window); // TODO : Remove cast once refacto done. 
-    m_impl = new Impl(vulkanWindow);
+    m_impl = new Impl(window);
 }
 
 GpuDevice::~GpuDevice()
@@ -28,14 +29,14 @@ GpuDevice::~GpuDevice()
     m_impl = nullptr;
 }
 
-GpuDevice::Impl::Impl(const WindowVulkan& _window)
+GpuDevice::Impl::Impl(const Window& window)
 {
     CreateInstance();
-    CreateSurface(_window);
+    CreateSurface(window);
     PickPhysicalDevice();
     CreateLogicalDevice();
     CreateAllocator();
-    CreateSwapchain(_window.Size().first, _window.Size().second);
+    CreateSwapchain(window.Size().first, window.Size().second);
     CreateDepthBuffer();
     CreateCommandPool();
     CreateSyncObjects();
@@ -49,10 +50,19 @@ GpuDevice::Impl::~Impl()
     DestroyCommandPool();
     DestroyDepthBuffer();
     DestroySwapchain();
+
     if (m_allocator) vmaDestroyAllocator(m_allocator);
     if (m_device) vkDestroyDevice(m_device, nullptr);
     if (m_surface) vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
     if (m_instance) vkDestroyInstance(m_instance, nullptr);
+}
+
+void GpuDevice::Impl::CreateSurface(const Window& window)
+{
+    if (glfwCreateWindowSurface(m_instance, window.GlfwHandle(), nullptr, &m_surface) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to create window surface");
+    }
 }
 
 void GpuDevice::Impl::WaitIdle()
@@ -95,14 +105,6 @@ void GpuDevice::Impl::CreateInstance()
     }
 
     m_instance = instance.value();
-}
-
-void GpuDevice::Impl::CreateSurface(const WindowVulkan& _window)
-{
-    if (glfwCreateWindowSurface(m_instance, _window.GlfwHandle(), nullptr, &m_surface) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to create window surface");
-    }
 }
 
 void GpuDevice::Impl::PickPhysicalDevice()

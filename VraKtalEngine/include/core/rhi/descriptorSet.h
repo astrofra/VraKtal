@@ -4,46 +4,55 @@
 
 #include <cstdint>
 #include <vector>
+#include <memory>
 
 #include <core/rhi/buffer.h>
-#include <core/rhi/image.h>
+#include <core/rhi/gpuImage.h>
 
 namespace core::rhi
 {
-	enum class DescriptorType
-	{
-		UniformBuffer, 
-		StorageBuffer,
-		ImageSampler
-	};
+    enum class DescriptorType
+    {
+        UniformBuffer,
+        StorageBuffer,
+        ImageSampler
+    };
 
-	enum class ShaderStage
-	{
-		Vertex,
-		Fragment,
-		Compute
-	};
+    enum class ShaderStage
+    {
+        Vertex,
+        Fragment,
+        Compute
+    };
 
-	struct DescriptorBinding
-	{
-		uint32_t binding;
-		DescriptorType type;
-		ShaderStage stage;
-	};
+    struct DescriptorBinding
+    {
+        uint32_t binding;
+        DescriptorType type;
+        ShaderStage stage;
+    };
 
-	struct DescriptorSetLayoutDesc
-	{
-		std::vector<DescriptorBinding> bindings;
-	};
+    struct DescriptorSetLayoutDesc
+    {
+        std::vector<DescriptorBinding> bindings;
+    };
 
-	class DescriptorSet
-	{
-	public:
-		virtual ~DescriptorSet() = default;
+    class DescriptorSet
+    {
+    public:
+        struct Impl;
 
-		virtual void BindBuffer(uint32_t binding, Buffer* buffer, size_t offset, size_t range) = 0;
-		virtual void BindImage(uint32_t binding, Image* image, const ImageUsage& usage) = 0;
-	};
+        DescriptorSet(VkDevice device, VkDescriptorPool pool, const DescriptorSetLayoutDesc& layoutDesc);
+        ~DescriptorSet();
+
+        void BindBuffer(uint32_t binding, Buffer* buffer, size_t offset, size_t range);
+        void BindImage(uint32_t binding, GpuImage* image, const GpuImageUsage& usage);
+
+        Impl& GetImpl();
+
+    private:
+        std::unique_ptr<Impl> m_impl;
+    };
 }
 
-#endif //VRAKTAL_CORE_RHI_DESCRIPTOR_SET_H
+#endif // VRAKTAL_CORE_RHI_DESCRIPTOR_SET_H

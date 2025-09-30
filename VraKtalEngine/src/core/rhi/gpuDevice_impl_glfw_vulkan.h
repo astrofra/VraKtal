@@ -5,19 +5,17 @@
 #include <core/rhi/gpuDevice.h>
 #include <core/rhi/gpuImage.h>
 
-#include <vector>
-
 #include <vulkan/vulkan.h>
 #include "../src/vkb/VkBootstrap.h"
 #include <vma/vk_mem_alloc.h>
 
+#include <vector>
+
 namespace core::rhi
 {
-    class WindowVulkan;
-
     struct GpuDevice::Impl
     {
-        explicit Impl(const WindowVulkan& window);
+        explicit Impl(const Window& window);
         ~Impl();
 
         CommandBuffer* CreateCommandBuffer();
@@ -25,6 +23,7 @@ namespace core::rhi
 
         void RecreateSwapchain();
         void WrapSwapchainImages();
+        void DeleteWrappedImages();
 
         bool BeginFrame(uint32_t& imageIndex);
         void EndFrame(uint32_t imageIndex, VkCommandBuffer cmd);
@@ -36,7 +35,7 @@ namespace core::rhi
         void WaitIdle();
 
         void CreateInstance();
-        void CreateSurface(const WindowVulkan& window);
+        void CreateSurface(const Window& window);
         void PickPhysicalDevice();
         void CreateLogicalDevice();
         void CreateAllocator();
@@ -46,7 +45,6 @@ namespace core::rhi
         void DestroyCommandPool();
         void CreateSyncObjects();
         void DestroySyncObjects();
-        void DeleteWrappedImages();
 
         GpuImage* GetSwapchainImage(uint32_t index) const;
 
@@ -65,7 +63,7 @@ namespace core::rhi
         VkExtent2D m_swapExtent = {};
         std::vector<VkImage> m_swapImages;
         std::vector<VkImageView> m_swapImageViews;
-        std::vector<core::rhi::GpuImage*> m_swapchainImageWrappers;
+        std::vector<GpuImage*> m_swapchainImageWrappers;
 
         VkCommandPool m_cmdPool = VK_NULL_HANDLE;
 
@@ -79,7 +77,6 @@ namespace core::rhi
         static constexpr int OVERLAPPED_FRAMES = 2;
         std::vector<FrameSync> m_frames;
         uint32_t m_currentFrame = 0;
-        bool m_framebufferResized = false;
 
         VkImage m_depthImage = VK_NULL_HANDLE;
         VmaAllocation m_depthAllocation = VK_NULL_HANDLE;

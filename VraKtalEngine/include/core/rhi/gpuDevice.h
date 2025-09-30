@@ -4,26 +4,31 @@
 
 #include <cstdint>
 
-namespace core::rhi
+namespace core
 {
-    class CommandBuffer;
     class Window;
 
-    class GpuDevice
+    namespace rhi
     {
-        struct Impl;
-        Impl* m_impl = nullptr;
-    public:
-        GpuDevice(Window& window);
-        ~GpuDevice();
+        class CommandBuffer;
 
-        CommandBuffer* CreateCommandBuffer();
-        void DestroyCommandBuffer(CommandBuffer* _commandBuffer);
+        class GpuDevice
+        {
+            struct Impl;
+            Impl* m_impl = nullptr;
 
-        void RecreateSwapchain();
+        public:
+            explicit GpuDevice(Window& window);
+            ~GpuDevice();
 
-        Impl& GetImpl();
-    };
+            CommandBuffer* CreateCommandBuffer();
+            void DestroyCommandBuffer(CommandBuffer* commandBuffer);
+
+            void RecreateSwapchain();
+
+            Impl& GetImpl();
+        };
+    }
 }
 
 #endif // VRAKTAL_CORE_RHI_GPUDEVICE_H
