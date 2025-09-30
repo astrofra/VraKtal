@@ -18,12 +18,9 @@ Buffer::Buffer(const BufferDesc& desc)
 
 Buffer::~Buffer() = default;
 
-void Buffer::GetDescriptorInfo(size_t offset, size_t range, void* outInfo) const
+Buffer::Impl& Buffer::GetImpl()
 {
-	VkDescriptorBufferInfo* info = reinterpret_cast<VkDescriptorBufferInfo*>(outInfo);
-	info->buffer = m_impl->buffer;
-	info->offset = offset;
-	info->range = range;
+	return *m_impl;
 }
 
 VkBufferUsageFlags core::rhi::ToVkBufferUsage(BufferUsage usage)

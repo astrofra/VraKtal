@@ -31,6 +31,9 @@ namespace core::rhi
 
 	class Buffer
 	{
+		struct Impl;
+		std::unique_ptr<Impl> m_impl;
+		BufferDesc m_desc;
 	public:
 		explicit Buffer(const BufferDesc& desc);
 		~Buffer();
@@ -41,12 +44,7 @@ namespace core::rhi
 
 		const BufferDesc& GetDesc() const { return m_desc; }
 
-		void GetDescriptorInfo(size_t offset, size_t range, void* outInfo) const;
-
-	private:
-		struct Impl;
-		std::unique_ptr<Impl> m_impl;
-		BufferDesc m_desc;
+		Impl& GetImpl();
 	};
 }
 
