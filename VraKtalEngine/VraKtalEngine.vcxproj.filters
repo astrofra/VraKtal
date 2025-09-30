@@ -72,7 +72,7 @@
     <ClCompile Include="src\core\rhi\gpuDevice_impl_glfw_vulkan.cpp">
       <Filter>Source Files\core\rhi</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\rhi\image_impl_vulkan.cpp">
+    <ClCompile Include="src\core\rhi\gpuImage_impl_vulkan.cpp">
       <Filter>Source Files\core\rhi</Filter>
     </ClCompile>
     <ClCompile Include="src\core\rhi\pipeline_impl_vulkan.cpp">
@@ -128,7 +128,7 @@
     <ClInclude Include="include\core\rhi\gpuDevice.h">
       <Filter>Header Files\core\rhi</Filter>
     </ClInclude>
-    <ClInclude Include="include\core\rhi\image.h">
+    <ClInclude Include="include\core\rhi\gpuImage.h">
       <Filter>Header Files\core\rhi</Filter>
     </ClInclude>
     <ClInclude Include="include\core\rhi\pipeline.h">
@@ -149,7 +149,7 @@
     <ClInclude Include="src\core\rhi\gpuDevice_impl_glfw_vulkan.h">
       <Filter>Source Files\core\rhi</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\rhi\image_impl_vulkan.h">
+    <ClInclude Include="src\core\rhi\gpuImage_impl_vulkan.h">
       <Filter>Source Files\core\rhi</Filter>
     </ClInclude>
     <ClInclude Include="src\core\rhi\pipeline_impl_vulkan.h">

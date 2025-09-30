@@ -143,7 +143,7 @@
     <ClCompile Include="src\core\rhi\commandBuffer_impl_vulkan.cpp" />
     <ClCompile Include="src\core\rhi\descriptorSet_impl_vulkan.cpp" />
     <ClCompile Include="src\core\rhi\gpuDevice_impl_glfw_vulkan.cpp" />
-    <ClCompile Include="src\core\rhi\image_impl_vulkan.cpp" />
+    <ClCompile Include="src\core\rhi\gpuImage_impl_vulkan.cpp" />
     <ClCompile Include="src\core\rhi\pipeline_impl_vulkan.cpp" />
     <ClCompile Include="src\core\rhi\renderer_impl_vulkan.cpp" />
     <ClCompile Include="src\core\rhi\window_impl_vulkan.cpp" />
@@ -161,7 +161,7 @@
     <ClInclude Include="include\core\rhi\commandBuffer.h" />
     <ClInclude Include="include\core\rhi\descriptorSet.h" />
     <ClInclude Include="include\core\rhi\gpuDevice.h" />
-    <ClInclude Include="include\core\rhi\image.h" />
+    <ClInclude Include="include\core\rhi\gpuImage.h" />
     <ClInclude Include="include\core\rhi\pipeline.h" />
     <ClInclude Include="include\core\rhi\renderer.h" />
     <ClInclude Include="include\core\rhi\renderingInfo.h" />
@@ -170,7 +170,7 @@
     <ClInclude Include="src\core\rhi\commandBuffer_impl_vulkan.h" />
     <ClInclude Include="src\core\rhi\descriptorSet_impl_vulkan.h" />
     <ClInclude Include="src\core\rhi\gpuDevice_impl_glfw_vulkan.h" />
-    <ClInclude Include="src\core\rhi\image_impl_vulkan.h" />
+    <ClInclude Include="src\core\rhi\gpuImage_impl_vulkan.h" />
     <ClInclude Include="src\core\rhi\pipeline_impl_vulkan.h" />
     <ClInclude Include="src\core\rhi\renderer_impl_vulkan.h" />
     <ClInclude Include="src\core\rhi\window_impl_vulkan.h" />
