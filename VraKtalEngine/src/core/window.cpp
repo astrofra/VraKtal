@@ -1,12 +1,13 @@
-﻿#include "../src/core/rhi/window_impl_vulkan.h"
+﻿#include <core/rhi/window.h>
+
+#include <GLFW/glfw3.h>
+#pragma comment(lib, "glfw3.lib")
 
 #include <stdexcept>
 
-#pragma comment(lib, "glfw3.lib")
-
 using namespace core::rhi;
 
-WindowVulkan::WindowVulkan(uint32_t _width, uint32_t _height, const char* _title, bool _resizable)
+Window::Window(uint32_t _width, uint32_t _height, const char* _title, bool _resizable)
     : m_title(_title), m_width(_width), m_height(_height)
 {
     if (!glfwInit())
@@ -25,7 +26,7 @@ WindowVulkan::WindowVulkan(uint32_t _width, uint32_t _height, const char* _title
     }
 }
 
-WindowVulkan::~WindowVulkan()
+Window::~Window()
 {
     if (m_window)
     {
@@ -34,20 +35,27 @@ WindowVulkan::~WindowVulkan()
     }
 }
 
-void WindowVulkan::PollEvents()
+void Window::PollEvents()
 {
     glfwPollEvents();
 }
 
-bool WindowVulkan::ShouldClose() const
+bool Window::ShouldClose() const
 {
     return glfwWindowShouldClose(m_window);
 }
 
-std::pair<uint32_t, uint32_t> WindowVulkan::Size() const
+std::pair<uint32_t, uint32_t> Window::Size() const
 {
-    return { m_width, m_height};
+    return { m_width, m_height };
 }
 
+const char* core::rhi::Window::Title() const
+{
+    return m_title.c_str();
+}
 
-
+GLFWwindow* core::rhi::Window::GlfwHandle() const 
+{
+    return m_window;
+}

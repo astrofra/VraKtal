@@ -146,7 +146,7 @@
     <ClCompile Include="src\core\rhi\gpuImage_impl_vulkan.cpp" />
     <ClCompile Include="src\core\rhi\pipeline_impl_vulkan.cpp" />
     <ClCompile Include="src\core\rhi\renderer_impl_vulkan.cpp" />
-    <ClCompile Include="src\core\rhi\window_impl_vulkan.cpp" />
+    <ClCompile Include="src\core\rhi\window.cpp" />
     <ClCompile Include="src\vkb\VkBootstrap.cpp" />
     <ClInclude Include="include\core\graphics\meshRenderer.h" />
     <ClInclude Include="include\core\graphics\renderGraph.h" />
@@ -165,7 +165,7 @@
     <ClInclude Include="include\core\rhi\pipeline.h" />
     <ClInclude Include="include\core\rhi\renderer.h" />
     <ClInclude Include="include\core\rhi\renderingInfo.h" />
-    <ClInclude Include="include\core\rhi\window.h" />
+    <ClInclude Include="include\core\window.h" />
     <ClInclude Include="src\core\rhi\buffer_impl_vulkan.h" />
     <ClInclude Include="src\core\rhi\commandBuffer_impl_vulkan.h" />
     <ClInclude Include="src\core\rhi\descriptorSet_impl_vulkan.h" />
@@ -173,7 +173,6 @@
     <ClInclude Include="src\core\rhi\gpuImage_impl_vulkan.h" />
     <ClInclude Include="src\core\rhi\pipeline_impl_vulkan.h" />
     <ClInclude Include="src\core\rhi\renderer_impl_vulkan.h" />
-    <ClInclude Include="src\core\rhi\window_impl_vulkan.h" />
     <ClInclude Include="src\vkb\VkBootstrap.h" />
     <ClInclude Include="src\vkb\VkBootstrapDispatch.h" />
   </ItemGroup>

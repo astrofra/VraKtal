@@ -1,5 +1,4 @@
-﻿
-#ifndef VRAKTAL_CORE_RHI_WINDOW_H
+﻿#ifndef VRAKTAL_CORE_RHI_WINDOW_H
 #define VRAKTAL_CORE_RHI_WINDOW_H
 #pragma once
 
@@ -10,7 +9,7 @@
 
 struct GLFWwindow;
 
-namespace core::rhi
+namespace core
 {
     class Window {
 

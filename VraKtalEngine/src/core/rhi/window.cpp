@@ -1,11 +1,11 @@
-﻿#include <core/rhi/window.h>
+﻿#include <core/window.h>
 
 #include <GLFW/glfw3.h>
 #pragma comment(lib, "glfw3.lib")
 
 #include <stdexcept>
 
-using namespace core::rhi;
+using namespace core;
 
 Window::Window(uint32_t _width, uint32_t _height, const char* _title, bool _resizable)
     : m_title(_title), m_width(_width), m_height(_height)

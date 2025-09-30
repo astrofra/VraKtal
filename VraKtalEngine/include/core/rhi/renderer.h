@@ -5,8 +5,8 @@
 #include <core/rhi/commandBuffer.h>
 #include <core/rhi/renderingInfo.h>
 #include <core/graphics/meshRenderer.h> // Add this include at the top of the file, after other includes
-
 #include <core/rhi/renderer.h>
+
 namespace core::graphics { struct GpuMesh; }
 namespace core::rhi
 {
@@ -16,7 +16,6 @@ namespace core::rhi
         struct Impl;
         std::unique_ptr<Impl> m_impl;
     public:
-
         ~Renderer() = default;
 
         void Render(CommandBuffer& commandBuffer,

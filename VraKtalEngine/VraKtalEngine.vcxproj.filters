@@ -81,14 +81,14 @@
     <ClCompile Include="src\core\rhi\renderer_impl_vulkan.cpp">
       <Filter>Source Files\core\rhi</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\rhi\window_impl_vulkan.cpp">
-      <Filter>Source Files\core\rhi</Filter>
-    </ClCompile>
     <ClCompile Include="src\core\rhi\buffer_impl_vulkan.cpp">
       <Filter>Source Files\core\rhi</Filter>
     </ClCompile>
     <ClCompile Include="src\core\rhi\descriptorSet_impl_vulkan.cpp">
       <Filter>Source Files\core\rhi</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\rhi\window.cpp">
+      <Filter>Source Files\core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -140,9 +140,6 @@
     <ClInclude Include="include\core\rhi\renderingInfo.h">
       <Filter>Header Files\core\rhi</Filter>
     </ClInclude>
-    <ClInclude Include="include\core\rhi\window.h">
-      <Filter>Header Files\core\rhi</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\rhi\commandBuffer_impl_vulkan.h">
       <Filter>Source Files\core\rhi</Filter>
     </ClInclude>
@@ -156,9 +153,6 @@
       <Filter>Source Files\core\rhi</Filter>
     </ClInclude>
     <ClInclude Include="src\core\rhi\renderer_impl_vulkan.h">
-      <Filter>Source Files\core\rhi</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\rhi\window_impl_vulkan.h">
       <Filter>Source Files\core\rhi</Filter>
     </ClInclude>
     <ClInclude Include="include\core\graphics\meshRenderer.h">
@@ -175,6 +169,9 @@
     </ClInclude>
     <ClInclude Include="src\core\rhi\descriptorSet_impl_vulkan.h">
       <Filter>Source Files\core\rhi</Filter>
+    </ClInclude>
+    <ClInclude Include="include\core\window.h">
+      <Filter>Header Files\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
