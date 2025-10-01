@@ -63,7 +63,7 @@
     <ClCompile Include="src\core\loaders\textureLoader.cpp">
       <Filter>Source Files\core\loaders</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\graphics\meshRenderer.cpp">
+    <ClCompile Include="src\core\graphics\meshRenderer_impl_vulkan.cpp">
       <Filter>Source Files\core\graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\core\rhi\commandBuffer_impl_vulkan.cpp">
@@ -172,6 +172,9 @@
     </ClInclude>
     <ClInclude Include="include\core\window.h">
       <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\graphics\mershRenderer_impl_vulkan.h">
+      <Filter>Source Files\core\graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

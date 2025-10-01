@@ -2,7 +2,9 @@
 #include <core/rhi/gpuDevice.h>
 #include <core/rhi/renderer.h>
 
-#include "../src/core/rhi/commandBuffer_impl_vulkan.h"
+//#include "../src/core/rhi/commandBuffer_impl_vulkan.h"
+#include "../src/core/graphics/mershRenderer_impl_vulkan.h"
+
 
 #include <core/graphics/meshRenderer.h>
 
@@ -30,27 +32,27 @@ int main()
     Window window(800, 600, "Textured Mesh");
     GpuDevice device(window);
 
-    device.GetImpl(); // TODO : wrap swapchain images, need to expose
+    //auto& a = device.WrapSwapChain; // TODO : wrap swapchain images, need to expose
 
-    //MeshRenderer meshRenderer(device);
-    //Renderer renderer(&meshRenderer);
+    MeshRenderer meshRenderer(device);
+    Renderer renderer(meshRenderer);
     // TODO : Add constructor to renderer.h 
 
     Scene scene = LoadScene("../bin/assets/meshes/traffic_cone/traffic_cone.gltf");
 
-    TextureLoader texLoader(); // TODO : Change required device from GpuDeviceVulkan to GpuDevice.
-    /*std::vector<TextureGpu> gpuTextures;
-    texLoader.LoadSceneTextures(scene, gpuTextures);*/
+    TextureLoader texLoader(device); // TODO : Change required device from GpuDeviceVulkan to GpuDevice.
+    std::vector<TextureGpu> gpuTextures;
+    texLoader.LoadSceneTextures(scene, gpuTextures);
 
-    if (scene.materials.empty()) 
+    if (scene.materials.empty())    //<--------------------------------------Maybe move this in the scene it self ? 
     {
         resources::Material defMat;
-        //defMat.baseColorTexture = gpuTextures.empty() ? -1 : 0;
+        defMat.baseColorTexture = gpuTextures.empty() ? -1 : 0;
         scene.materials.push_back(defMat);
         std::cout << "Added fallback material" << std::endl;
     }
 
-    for (auto& m : scene.meshes) 
+    for (auto& m : scene.meshes)    //<--------------------------------------Maybe move this in the scene it self ? 
     {
         if ((int)m.materialIndex < 0) 
         {
@@ -58,35 +60,35 @@ int main()
         }
     }
 
-    //meshRenderer.CreateDescriptorPool((uint32_t)scene.materials.size());
+    meshRenderer.GetImpl().CreateDescriptorPool((uint32_t)scene.materials.size());
 
     std::vector<VkDescriptorSet> materialSets;
     materialSets.reserve(scene.materials.size());
 
-    for (auto& mat : scene.materials) 
+    for (auto& mat : scene.materials) //Move into a LoadScene ? / prepare scene ? 
     {
         int texIndex = mat.baseColorTexture;
-        /*if (texIndex < 0 || texIndex >= (int)gpuTextures.size()) 
+        if (texIndex < 0 || texIndex >= (int)gpuTextures.size()) 
         {
             texIndex = 0;
-        }*/
-        //auto& t = gpuTextures[texIndex];
-        //materialSets.push_back(meshRenderer.CreateDescriptorSet(t.view, t.sampler));
+        }
+        auto& t = gpuTextures[texIndex];
+        materialSets.push_back(meshRenderer.GetImpl().CreateDescriptorSet(t.view, t.sampler));
     }
 
-    //meshRenderer.SetMaterialDescriptorSets(materialSets);
+    meshRenderer.GetImpl().SetMaterialDescriptorSets(materialSets);
 
-    std::vector<GpuMesh> gpuMeshes;
+    std::vector<GpuMesh> gpuMeshes; //< -- - please delete it
     gpuMeshes.reserve(scene.meshes.size());
-    /*for (auto& m : scene.meshes) 
+    for (auto& m : scene.meshes) 
     {
         gpuMeshes.push_back(meshRenderer.UploadMesh(m));
-    }*/
+    }
 
-    std::vector<CommandBufferVulkan*> commandBuffers;
+    std::vector<CommandBuffer*> commandBuffers;
     for (int i = 0; i < 2; ++i) 
     {
-        //commandBuffers.push_back(new CommandBufferVulkan(device));
+        commandBuffers.push_back(new CommandBuffer(device));
     }
 
     uint32_t currentFrame = 0;
@@ -104,44 +106,41 @@ int main()
         window.PollEvents();
 
         uint32_t imageIndex;
-        /*if (!device.BeginFrame(imageIndex)) 
+        if (!device.BeginFrame(imageIndex)) 
         {
             continue;
-        }*/
-        // TODO : Need to expose BeginFrame
+        }
+        //
+        CommandBuffer& commandBuffer = *commandBuffers[currentFrame];
+        commandBuffer.Begin();
 
-        /*CommandBuffer& commandBuffer = commandBuffers[currentFrame];
-        commandBuffer.Begin();*/
+        RenderingInfo info;
+        info.width = device.GetSize().first;
+        info.height = device.GetSize().second;
 
-        /*RenderingInfo info;
-        info.width = device.SwapExtent().width;
-        info.height = device.SwapExtent().height;*/
-        // TODO : Expose SwapExtend
-
-       /* RenderingAttachment color{};
+        RenderingAttachment color{};
         color.image = device.GetSwapchainImage(imageIndex);
         color.clearValue = { 0.1f, 0.1f, 0.15f, 1.f };
         color.loadOp = LoadOp::Clear;
         color.storeOp = StoreOp::Store;
-        info.colorAttachments.push_back(color);*/
+        info.colorAttachments.push_back(color);
 
         // TODO : Expose swapchainImages
 
-        //renderer.Render(commandBuffer, info, imageIndex, gpuMeshes, view, proj);
+        renderer.Render(commandBuffer, info, imageIndex, gpuMeshes, view, proj);
 
-        //commandBuffer.End();
-        //device.EndFrame(imageIndex, commandBuffer.GetNative());
+        commandBuffer.End();
+        device.EndFrame(imageIndex, commandBuffer);
         // TODO : Expose endFrame
 
         currentFrame = (currentFrame + 1) % 2;
     }
 
-    //device.WaitIdle();
-    // TODO : Expose WaitIdle
+    device.WaitIdle();
 
     for (auto& g : gpuMeshes)
     {
-        //meshRenderer.DestroyMesh(g);
+        meshRenderer.DestroyMesh(g);
     }
     for (auto* cmd : commandBuffers)
     {

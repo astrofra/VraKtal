@@ -9,12 +9,9 @@ using namespace core::graphics;
 
 namespace core::rhi
 {
-
     struct Renderer::Impl
     {
-    public:
         explicit Impl(MeshRenderer* meshRenderer);
-
         void Render(CommandBuffer& commandBuffer,
             const RenderingInfo& info,
             uint32_t imageIndex,

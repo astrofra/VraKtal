@@ -3,6 +3,9 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
+
+
 
 namespace core
 {
@@ -11,21 +14,30 @@ namespace core
     namespace rhi
     {
         class CommandBuffer;
+        class GpuImage;
 
         class GpuDevice
         {
             struct Impl;
-            Impl* m_impl = nullptr;
+            std::unique_ptr<Impl> m_impl;
 
         public:
             explicit GpuDevice(Window& window);
             ~GpuDevice();
 
+            bool BeginFrame(uint32_t& imageIndex);
+            void EndFrame(uint32_t imageIndex, CommandBuffer& cmd);
+
             CommandBuffer* CreateCommandBuffer();
             void DestroyCommandBuffer(CommandBuffer* commandBuffer);
-
             void RecreateSwapchain();
 
+            void WaitIdle();
+
+            std::pair<int, int> GetSize(); //retrurn SwapExtent for vulk
+
+            GpuImage* GetSwapchainImage(uint32_t index) const;
+            
             Impl& GetImpl();
         };
     }

@@ -46,6 +46,10 @@ namespace core::rhi
         void CreateSyncObjects();
         void DestroySyncObjects();
 
+        VmaAllocator    Allocator    (){return m_allocator;     }
+        VkQueue         GraphicsQueue(){return m_graphicsQueue; }
+        VkDevice        Device       (){return m_device;        }
+        VkCommandPool   CommandPool  (){return m_cmdPool;       }
         GpuImage* GetSwapchainImage(uint32_t index) const;
 
         vkb::Instance m_instance;

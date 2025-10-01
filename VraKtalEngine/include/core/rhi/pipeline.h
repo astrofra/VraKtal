@@ -6,6 +6,7 @@
 
 namespace core::rhi
 {
+    class GpuDevice;
     class Pipeline
     {
     public:

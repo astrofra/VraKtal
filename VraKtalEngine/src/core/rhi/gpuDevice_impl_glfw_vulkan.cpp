@@ -15,18 +15,49 @@
 #include <stdexcept>
 #include <array>
 #include <limits>
+#include <iostream>
 
 using namespace core::rhi;
 
 GpuDevice::GpuDevice(Window& window)
 {
-    m_impl = new Impl(window);
+    m_impl = std::make_unique<Impl>(window);
+    m_impl->WrapSwapchainImages();
 }
 
-GpuDevice::~GpuDevice()
+GpuDevice::~GpuDevice() 
 {
-    delete m_impl;
-    m_impl = nullptr;
+    
+}
+
+GpuDevice::Impl& GpuDevice::GetImpl() 
+{
+    return *m_impl;
+}
+
+bool core::rhi::GpuDevice::BeginFrame(uint32_t& imageIndex)
+{
+   return m_impl->BeginFrame(imageIndex);
+}
+
+void core::rhi::GpuDevice::EndFrame(uint32_t imageIndex, CommandBuffer& cmd)
+{
+    m_impl->EndFrame(imageIndex, cmd.GetImpl().GetNative());
+}
+
+std::pair<int, int> GpuDevice::GetSize() 
+{
+    return std::pair<int, int>(m_impl->m_swapExtent.width, m_impl->m_swapExtent.height);
+};
+
+GpuImage* GpuDevice::GetSwapchainImage(uint32_t index) const 
+{
+    return m_impl->GetSwapchainImage(index);
+};
+
+void GpuDevice::WaitIdle()
+{
+    m_impl->WaitIdle();
 }
 
 GpuDevice::Impl::Impl(const Window& window)
@@ -69,6 +100,7 @@ void GpuDevice::Impl::WaitIdle()
 {
     vkDeviceWaitIdle(m_device);
 }
+
 
 CommandBuffer* GpuDevice::Impl::CreateCommandBuffer()
 {
@@ -337,6 +369,7 @@ void GpuDevice::Impl::EndFrame(uint32_t imageIndex, VkCommandBuffer cmd)
 
 GpuImage* GpuDevice::Impl::GetSwapchainImage(uint32_t index) const
 {
+    //std::cout << m_swapchainImageWrappers.size() << std::endl;
     return m_swapchainImageWrappers[index];
 }
 

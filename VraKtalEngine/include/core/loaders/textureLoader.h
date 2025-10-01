@@ -8,17 +8,17 @@
 #include <vector>
 #include <string>
 
-namespace core::rhi::vulkan { class GpuDeviceVulkan; }
+namespace core::rhi { class GpuDevice; }
 
 using namespace core::graphics::resources;
-using namespace core::rhi::vulkan;
+using namespace core::rhi;
 
 namespace core::loaders
 {
 	class TextureLoader
 	{
     public:
-        TextureLoader(GpuDeviceVulkan& device);
+        TextureLoader(GpuDevice& device);
         ~TextureLoader();
 
         void LoadSceneTextures(const Scene& scene, std::vector<TextureGpu>& texturesOut);
@@ -28,7 +28,7 @@ namespace core::loaders
     private:
         TextureGpu LoadTextureFile(const std::string& path, bool srgb = true);
 
-        GpuDeviceVulkan& m_device;
+        GpuDevice& m_device;
 	};
 }
 

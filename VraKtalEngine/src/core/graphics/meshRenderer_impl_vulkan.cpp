@@ -1,4 +1,5 @@
-﻿#include <core/graphics/meshRenderer.h>
+﻿#include "../src/core/graphics/mershRenderer_impl_vulkan.h"
+
 #include <core/loaders/shaderLoader.h>
 #include <core/graphics/resources/material.h>
 #include <core/graphics/resources/mesh.h>
@@ -9,143 +10,44 @@
 #include <stdexcept>
 #include <array>
 
+#include <core/graphics/meshRenderer.h> // Add this include at the top of the file, after other includes
+
+
 using namespace core::loaders;
 using namespace core::graphics;
-using namespace core::rhi::vulkan;
+using namespace core::graphics::resources;
 
-MeshRenderer::MeshRenderer(GpuDeviceVulkan& device)
-    : m_device(device)
+
+MeshRenderer::MeshRenderer(rhi::GpuDevice& _device)
 {
-    CreatePipeline();
+    m_impl = std::make_unique<Impl>(_device);
+    m_impl->CreatePipeline();
 }
 
-MeshRenderer::~MeshRenderer()
+MeshRenderer::~MeshRenderer(){}
+
+
+core::graphics::MeshRenderer::Impl::Impl(rhi::GpuDevice& dev)
+    : m_device(dev)
+{}
+
+GpuMesh MeshRenderer::UploadMesh(const Mesh& mesh) 
 {
-    VkDevice dev = m_device.Device();
-    if (m_pipeline)         vkDestroyPipeline(dev, m_pipeline, nullptr);
-    if (m_pipelineLayout)   vkDestroyPipelineLayout(dev, m_pipelineLayout, nullptr);
-    DestroyDescriptors();
+    return m_impl->UploadMesh(mesh);
 }
 
-void MeshRenderer::SetMaterialDescriptorSets(const std::vector<VkDescriptorSet>& sets)
+void MeshRenderer::DestroyMesh(GpuMesh& mesh)
 {
-    m_materialDescriptorSets = sets;
+    m_impl->DestroyMesh(mesh);
 }
 
-void MeshRenderer::CreateDescriptorSetLayout()
-{
-    if (m_descriptorSetLayout) 
-    {
-        return;
-    }
-
-    VkDescriptorSetLayoutBinding binding{};
-    binding.binding = 0;
-    binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    binding.descriptorCount = 1;
-    binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-    VkDescriptorSetLayoutCreateInfo info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
-    info.bindingCount = 1;
-    info.pBindings = &binding;
-
-    if (vkCreateDescriptorSetLayout(m_device.Device(), &info, nullptr, &m_descriptorSetLayout) != VK_SUCCESS)
-    {
-        throw std::runtime_error("Failed to create descriptor set layout");
-    }
-}
-
-void MeshRenderer::DestroyDescriptors() 
-{
-    VkDevice dev = m_device.Device();
-    if (m_descriptorPool) 
-    {
-        vkDestroyDescriptorPool(dev, m_descriptorPool, nullptr);
-        m_descriptorPool = VK_NULL_HANDLE;
-    }
-    if (m_descriptorSetLayout) 
-    {
-        vkDestroyDescriptorSetLayout(dev, m_descriptorSetLayout, nullptr);
-        m_descriptorSetLayout = VK_NULL_HANDLE;
-    }
-}
-
-void MeshRenderer::CreateDescriptorPool(uint32_t maxSets) 
-{
-    if (m_descriptorPool)
-    {
-        return;
-    }
-
-    if (maxSets == 0)
-    {
-        maxSets = 1;
-    }
-
-    VkDescriptorPoolSize poolSize{};
-    poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSize.descriptorCount = maxSets;
-
-    VkDescriptorPoolCreateInfo info{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
-    info.poolSizeCount = 1;
-    info.pPoolSizes = &poolSize;
-    info.maxSets = maxSets;
-
-    if (vkCreateDescriptorPool(m_device.Device(), &info, nullptr, &m_descriptorPool) != VK_SUCCESS)
-    {
-        throw std::runtime_error("Failed to create descriptor pool");
-    }
-}
-
-const VkDevice MeshRenderer::Device()
-{ 
-    return m_device.Device();
-}
-
-VkDescriptorSet MeshRenderer::CreateDescriptorSet(VkImageView view, VkSampler sampler) {
-    if (!m_descriptorSetLayout)
-    {
-        throw std::runtime_error("Descriptor set layout not created");
-    }
-    if (!m_descriptorPool) 
-    {
-        throw std::runtime_error("Descriptor pool not created");
-    }
-
-    VkDescriptorSetAllocateInfo alloc{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-    alloc.descriptorPool = m_descriptorPool;
-    alloc.descriptorSetCount = 1;
-    alloc.pSetLayouts = &m_descriptorSetLayout;
-
-    VkDescriptorSet set;
-    if (vkAllocateDescriptorSets(m_device.Device(), &alloc, &set) != VK_SUCCESS)
-    {
-        throw std::runtime_error("Failed to allocate descriptor set");
-    }
-
-    VkDescriptorImageInfo imgInfo{};
-    imgInfo.imageView = view;
-    imgInfo.sampler = sampler;
-    imgInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-    VkWriteDescriptorSet write{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
-    write.dstSet = set;
-    write.dstBinding = 0;
-    write.descriptorCount = 1;
-    write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    write.pImageInfo = &imgInfo;
-
-    vkUpdateDescriptorSets(m_device.Device(), 1, &write, 0, nullptr);
-    return set;
-}
-
-void MeshRenderer::CreatePipeline()
+void MeshRenderer::Impl::CreatePipeline()
 {
     auto vertShaderCode = ShaderLoader::ReadShaderFile("../bin/assets/shaders/mesh.vert.spv");
     auto fragShaderCode = ShaderLoader::ReadShaderFile("../bin/assets/shaders/mesh.frag.spv");
 
-    VkShaderModule vertShaderModule = ShaderLoader::CreateShaderModule(m_device.Device(), vertShaderCode);
-    VkShaderModule fragShaderModule = ShaderLoader::CreateShaderModule(m_device.Device(), fragShaderCode);
+    VkShaderModule vertShaderModule = ShaderLoader::CreateShaderModule(m_device.GetImpl().m_device, vertShaderCode);
+    VkShaderModule fragShaderModule = ShaderLoader::CreateShaderModule(m_device.GetImpl().m_device, fragShaderCode);
 
     VkPipelineShaderStageCreateInfo vertShaderStageInfo{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
     vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -260,7 +162,7 @@ void MeshRenderer::CreatePipeline()
     pipelineLayoutInfo.pushConstantRangeCount = 1;
     pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
 
-    if (vkCreatePipelineLayout(m_device.Device(), &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
+    if (vkCreatePipelineLayout(m_device.GetImpl().m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
     {
         throw std::runtime_error("Failed to create pipeline layout");
     }
@@ -272,8 +174,8 @@ void MeshRenderer::CreatePipeline()
     depthStencil.depthBoundsTestEnable = VK_FALSE;
     depthStencil.stencilTestEnable = VK_FALSE;
 
-    VkFormat colorFormat = m_device.SwapFormat();
-    VkFormat depthFormat = m_device.DepthFormat();
+    VkFormat colorFormat = m_device.GetImpl().m_swapFormat;
+    VkFormat depthFormat = m_device.GetImpl().m_depthFormat;
     VkPipelineRenderingCreateInfo renderingInfo{ VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO };
     renderingInfo.colorAttachmentCount = 1;
     renderingInfo.pColorAttachmentFormats = &colorFormat;
@@ -294,82 +196,46 @@ void MeshRenderer::CreatePipeline()
     pipelineInfo.renderPass = VK_NULL_HANDLE; 
     pipelineInfo.pDepthStencilState = &depthStencil;
 
-    if (vkCreateGraphicsPipelines(m_device.Device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline) != VK_SUCCESS)
+    if (vkCreateGraphicsPipelines(m_device.GetImpl().m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline) != VK_SUCCESS)
     {
         throw std::runtime_error("Failed to create graphics pipeline");
     }
 
-    ShaderLoader::DestroyShaderModule(m_device.Device(), fragShaderModule);
-    ShaderLoader::DestroyShaderModule(m_device.Device(), vertShaderModule);
+    ShaderLoader::DestroyShaderModule(m_device.GetImpl().m_device, fragShaderModule);
+    ShaderLoader::DestroyShaderModule(m_device.GetImpl().m_device, vertShaderModule);
 }
 
-GpuMesh MeshRenderer::UploadMesh(const resources::Mesh& mesh)
-{
-    GpuMesh gpuMesh{};
 
-    VkDeviceSize vertexBufferSize = mesh.vertices.size() * sizeof(resources::Vertex);
-    VkDeviceSize indexBufferSize  = mesh.indices.size() * sizeof(uint32_t);
 
-    {
-        VkBufferCreateInfo vbInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-        vbInfo.size  = vertexBufferSize;
-        vbInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-
-        VmaAllocationCreateInfo allocInfo{};
-        allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-
-        if (vmaCreateBuffer(m_device.Allocator(), &vbInfo, &allocInfo,
-                            &gpuMesh.vertexBuffer, &gpuMesh.vertexAlloc, nullptr) != VK_SUCCESS)
-        {
-            throw std::runtime_error("Failed to create vertex buffer");
-        }
-
-        m_device.UploadToBuffer(gpuMesh.vertexBuffer, mesh.vertices.data(), vertexBufferSize);
-    }
-
-    {
-        VkBufferCreateInfo ibInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-        ibInfo.size  = indexBufferSize;
-        ibInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-
-        VmaAllocationCreateInfo allocInfo{};
-        allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-
-        if (vmaCreateBuffer(m_device.Allocator(), &ibInfo, &allocInfo,
-                            &gpuMesh.indexBuffer, &gpuMesh.indexAlloc, nullptr) != VK_SUCCESS)
-        {
-            throw std::runtime_error("Failed to create index buffer");
-        }
-
-        m_device.UploadToBuffer(gpuMesh.indexBuffer, mesh.indices.data(), indexBufferSize);
-    }
-
-    gpuMesh.indexCount = static_cast<uint32_t>(mesh.indices.size());
-    gpuMesh.materialIndex = mesh.materialIndex;
-    return gpuMesh;
-}
-
-void MeshRenderer::DestroyMesh(GpuMesh& mesh)
-{
+void MeshRenderer::Impl::DestroyMesh(GpuMesh& mesh) {
     if (mesh.vertexBuffer)
     {
-        vmaDestroyBuffer(m_device.Allocator(), mesh.vertexBuffer, mesh.vertexAlloc);
+        vmaDestroyBuffer(m_device.GetImpl().m_allocator, mesh.vertexBuffer, mesh.vertexAlloc);
         mesh.vertexBuffer = VK_NULL_HANDLE;
     }
     if (mesh.indexBuffer)
     {
-        vmaDestroyBuffer(m_device.Allocator(), mesh.indexBuffer, mesh.indexAlloc);
+        vmaDestroyBuffer(m_device.GetImpl().m_allocator, mesh.indexBuffer, mesh.indexAlloc);
         mesh.indexBuffer = VK_NULL_HANDLE;
     }
 }
+void MeshRenderer::Draw(rhi::CommandBuffer& cmd, const GpuMesh& mesh,
+    const glm::mat4& model,
+    const glm::mat4& view,
+    const glm::mat4& projection) 
+{
+    m_impl->Draw(cmd, mesh, model, view, projection);
+}
 
-void MeshRenderer::Draw(CommandBufferVulkan& cmd, const GpuMesh& mesh,
+MeshRenderer::Impl& MeshRenderer::GetImpl() { return *m_impl; } 
+
+void MeshRenderer::Impl::Draw(rhi::CommandBuffer& cmd, const GpuMesh& mesh,
     const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection)
 {
-    VkCommandBuffer nativeCmd = cmd.GetNative();
+    VkCommandBuffer nativeCmd = cmd.GetImpl().GetNative();
 
-    VkDeviceSize offsets[] = { 0 };
-    VkBuffer vertexBuffers[] = { mesh.vertexBuffer };
+    VkDeviceSize offsets[] = {0};
+    VkBuffer vertexBuffers[] = { mesh.vertexBuffer};
 
     vkCmdBindPipeline(nativeCmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
@@ -398,4 +264,162 @@ void MeshRenderer::Draw(CommandBufferVulkan& cmd, const GpuMesh& mesh,
     vkCmdBindIndexBuffer(nativeCmd, mesh.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
     vkCmdDrawIndexed(nativeCmd, mesh.indexCount, 1, 0, 0, 0);
+}
+
+core::graphics::GpuMesh MeshRenderer::Impl::UploadMesh(const Mesh& mesh)
+{
+    GpuMesh gpuMesh;
+
+    VkDeviceSize vertexBufferSize = mesh.vertices.size() * sizeof(resources::Vertex);
+    VkDeviceSize indexBufferSize = mesh.indices.size() * sizeof(uint32_t);
+
+    {
+        VkBufferCreateInfo vbInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+        vbInfo.size = vertexBufferSize;
+        vbInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+        VmaAllocationCreateInfo allocInfo{};
+        allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+
+        if (vmaCreateBuffer(m_device.GetImpl().m_allocator, &vbInfo, &allocInfo,
+            &gpuMesh.vertexBuffer, &gpuMesh.vertexAlloc, nullptr) != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create vertex buffer");
+        }
+
+        m_device.GetImpl().UploadToBuffer(gpuMesh.vertexBuffer, mesh.vertices.data(), vertexBufferSize);
+    }
+
+    {
+        VkBufferCreateInfo ibInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+        ibInfo.size = indexBufferSize;
+        ibInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+        VmaAllocationCreateInfo allocInfo{};
+        allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+
+        if (vmaCreateBuffer(m_device.GetImpl().m_allocator, &ibInfo, &allocInfo,
+            &gpuMesh.indexBuffer, &gpuMesh.indexAlloc, nullptr) != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create index buffer");
+        }
+
+        m_device.GetImpl().UploadToBuffer(gpuMesh.indexBuffer, mesh.indices.data(), indexBufferSize);
+    }
+
+    gpuMesh.indexCount = static_cast<uint32_t>(mesh.indices.size());
+    gpuMesh.materialIndex = mesh.materialIndex;
+    return gpuMesh;
+}
+
+const VkDevice MeshRenderer::Impl::Device()
+{ 
+    return m_device.GetImpl().m_device;
+}
+
+VkDescriptorSet MeshRenderer::Impl::CreateDescriptorSet(VkImageView view, VkSampler sampler) {
+    if (!m_descriptorSetLayout)
+    {
+        throw std::runtime_error("Descriptor set layout not created");
+    }
+    if (!m_descriptorPool) 
+    {
+        throw std::runtime_error("Descriptor pool not created");
+    }
+
+    VkDescriptorSetAllocateInfo alloc{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+    alloc.descriptorPool = m_descriptorPool;
+    alloc.descriptorSetCount = 1;
+    alloc.pSetLayouts = &m_descriptorSetLayout;
+
+    VkDescriptorSet set;
+    if (vkAllocateDescriptorSets(m_device.GetImpl().m_device, &alloc, &set) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to allocate descriptor set");
+    }
+
+    VkDescriptorImageInfo imgInfo{};
+    imgInfo.imageView = view;
+    imgInfo.sampler = sampler;
+    imgInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+    VkWriteDescriptorSet write{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+    write.dstSet = set;
+    write.dstBinding = 0;
+    write.descriptorCount = 1;
+    write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    write.pImageInfo = &imgInfo;
+
+    vkUpdateDescriptorSets(m_device.GetImpl().m_device, 1, &write, 0, nullptr);
+    return set;
+}
+
+void MeshRenderer::Impl::CreateDescriptorPool(uint32_t maxSets) 
+{
+    if (m_descriptorPool)
+    {
+        return;
+    }
+
+    if (maxSets == 0)
+    {
+        maxSets = 1;
+    }
+
+    VkDescriptorPoolSize poolSize{};
+    poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSize.descriptorCount = maxSets;
+
+    VkDescriptorPoolCreateInfo info{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+    info.poolSizeCount = 1;
+    info.pPoolSizes = &poolSize;
+    info.maxSets = maxSets;
+
+    if (vkCreateDescriptorPool(m_device.GetImpl().m_device, &info, nullptr, &m_descriptorPool) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to create descriptor pool");
+    }
+}
+
+void MeshRenderer::Impl::SetMaterialDescriptorSets(const std::vector<VkDescriptorSet>& sets)
+{
+    m_materialDescriptorSets = sets;
+}
+
+void MeshRenderer::Impl::CreateDescriptorSetLayout()
+{
+    if (m_descriptorSetLayout) 
+    {
+        return;
+    }
+
+    VkDescriptorSetLayoutBinding binding{};
+    binding.binding = 0;
+    binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    binding.descriptorCount = 1;
+    binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+    VkDescriptorSetLayoutCreateInfo info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+    info.bindingCount = 1;
+    info.pBindings = &binding;
+
+    if (vkCreateDescriptorSetLayout(Device(), &info, nullptr, &m_descriptorSetLayout) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to create descriptor set layout");
+    }
+}
+
+void MeshRenderer::Impl::DestroyDescriptors() 
+{
+    VkDevice dev = m_device.GetImpl().m_device;
+    if (m_descriptorPool) 
+    {
+        vkDestroyDescriptorPool(dev, m_descriptorPool, nullptr);
+        m_descriptorPool = VK_NULL_HANDLE;
+    }
+    if (m_descriptorSetLayout) 
+    {
+        vkDestroyDescriptorSetLayout(dev, m_descriptorSetLayout, nullptr);
+        m_descriptorSetLayout = VK_NULL_HANDLE;
+    }
 }

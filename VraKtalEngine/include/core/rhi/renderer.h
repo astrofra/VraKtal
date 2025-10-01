@@ -1,22 +1,24 @@
 ﻿#ifndef VRAKTAL_CORE_RHI_RENDERER_H
 #define VRAKTAL_CORE_RHI_RENDERER_H
 #pragma once
-
+#include <core/graphics/meshRenderer.h> // Add this include at the top of the file, after other includes
 #include <core/rhi/commandBuffer.h>
 #include <core/rhi/renderingInfo.h>
-#include <core/graphics/meshRenderer.h> // Add this include at the top of the file, after other includes
-#include <core/rhi/renderer.h>
+
+#include <unordered_map>
 
 namespace core::graphics { struct GpuMesh; }
+
 namespace core::rhi
 {
     class Renderer
     {
     private:
         struct Impl;
-        std::unique_ptr<Impl> m_impl;
+        Impl* m_impl;
     public:
-        ~Renderer() = default;
+        Renderer(core::graphics::MeshRenderer& _meshRenderer);
+        ~Renderer();
 
         void Render(CommandBuffer& commandBuffer,
             const RenderingInfo& info,
