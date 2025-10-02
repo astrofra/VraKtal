@@ -7,9 +7,6 @@
 
 namespace core::rhi
 {
-    VkBufferUsageFlags ToVkBufferUsage(BufferUsage usage);
-    VkMemoryPropertyFlags ToVkMemoryUsage(MemoryUsage memory);
-
     struct Buffer::Impl
     {
         VkDevice device = VK_NULL_HANDLE;

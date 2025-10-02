@@ -135,6 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="include\core\gpu_details\converter_vulkan.cpp" />
     <ClCompile Include="src\core\graphics\meshRenderer.cpp" />
     <ClCompile Include="src\core\loaders\gltfLoader.cpp" />
     <ClCompile Include="src\core\loaders\shaderLoader.cpp" />
@@ -148,6 +149,7 @@
     <ClCompile Include="src\core\rhi\renderer_impl_vulkan.cpp" />
     <ClCompile Include="src\core\rhi\window.cpp" />
     <ClCompile Include="src\vkb\VkBootstrap.cpp" />
+    <ClInclude Include="include\core\gpu_details\converter_vulkan.h" />
     <ClInclude Include="include\core\graphics\meshRenderer.h" />
     <ClInclude Include="include\core\graphics\renderGraph.h" />
     <ClInclude Include="include\core\graphics\resources\material.h" />
