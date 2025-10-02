@@ -49,6 +49,9 @@
     <Filter Include="Source Files\core\rhi">
       <UniqueIdentifier>{69b3d59b-2b82-4b4f-987e-d0a9f7e29cf5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\core\gpu_details">
+      <UniqueIdentifier>{3af19617-8753-4a46-afd0-0616d466e76e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\vkb\VkBootstrap.cpp">
@@ -89,6 +92,9 @@
     </ClCompile>
     <ClCompile Include="src\core\rhi\window.cpp">
       <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\gpu_details\converter_vulkan.cpp">
+      <Filter>Source Files\core\gpu_details</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -175,6 +181,9 @@
     </ClInclude>
     <ClInclude Include="src\core\graphics\mershRenderer_impl_vulkan.h">
       <Filter>Source Files\core\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\gpu_details\converter_vulkan.h">
+      <Filter>Source Files\core\gpu_details</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

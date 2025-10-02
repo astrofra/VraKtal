@@ -60,6 +60,11 @@ void GpuDevice::WaitIdle()
     m_impl->WaitIdle();
 }
 
+void* GpuDevice::GetInstance() const
+{
+    return m_impl->Instance();
+}
+
 GpuDevice::Impl::Impl(const Window& window)
 {
     CreateInstance();

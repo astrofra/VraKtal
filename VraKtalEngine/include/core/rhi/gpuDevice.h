@@ -37,6 +37,7 @@ namespace core
             std::pair<int, int> GetSize(); //retrurn SwapExtent for vulk
 
             GpuImage* GetSwapchainImage(uint32_t index) const;
+            void* GetInstance() const;
             
             Impl& GetImpl();
         };

@@ -50,6 +50,7 @@ namespace core::rhi
         VkQueue         GraphicsQueue(){return m_graphicsQueue; }
         VkDevice        Device       (){return m_device;        }
         VkCommandPool   CommandPool  (){return m_cmdPool;       }
+        VkInstance      Instance     (){ return m_instance; }
         GpuImage* GetSwapchainImage(uint32_t index) const;
 
         vkb::Instance m_instance;
