@@ -227,7 +227,12 @@ void MeshRenderer::Draw(rhi::CommandBuffer& cmd, const GpuMesh& mesh,
     m_impl->Draw(cmd, mesh, model, view, projection);
 }
 
-MeshRenderer::Impl& MeshRenderer::GetImpl() { return *m_impl; } 
+void* MeshRenderer::GetDescriptorPool()
+{
+	return static_cast<void*>(m_impl->GetDescriptorPool());
+}
+
+MeshRenderer::Impl& MeshRenderer::GetImpl() { return *m_impl; }
 
 void MeshRenderer::Impl::Draw(rhi::CommandBuffer& cmd, const GpuMesh& mesh,
     const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection)

@@ -39,6 +39,8 @@ namespace core::graphics {
         void CreatePipeline();
         void DestroyMesh(GpuMesh& mesh);
 
+		VkDescriptorPool GetDescriptorPool() const { return m_descriptorPool; }
+
     private:
         
         void DestroyDescriptors();

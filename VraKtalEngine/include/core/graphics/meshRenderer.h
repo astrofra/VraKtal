@@ -42,6 +42,8 @@ namespace core
 
             rhi::GpuDevice* Device();
 
+			void* GetDescriptorPool(); // TODO : remove
+
             Impl& GetImpl();
         };
     }
