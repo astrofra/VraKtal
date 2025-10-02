@@ -2,66 +2,49 @@
 #define VRAKTAL_CORE_GRAPHICS_MESH_RENDERER_H
 #pragma once
 
-#include <vulkan/vulkan.h>
-#include <vma/vk_mem_alloc.h>
+
 #include <glm/glm.hpp>
 #include <vector>
+#include <memory>
 
-namespace core::rhi::vulkan { class CommandBufferVulkan; class GpuDeviceVulkan; }
 namespace core::graphics::resources { struct Vertex; struct Material; class Mesh; }
 
-using namespace core::rhi::vulkan;
+using namespace core;
 using namespace core::graphics::resources;
 
-namespace core::graphics
+namespace core
 {
-    struct GpuMesh
+    namespace rhi
     {
-        VkBuffer vertexBuffer = VK_NULL_HANDLE;
-        VmaAllocation vertexAlloc = VK_NULL_HANDLE;
-        VkBuffer indexBuffer = VK_NULL_HANDLE;
-        VmaAllocation indexAlloc = VK_NULL_HANDLE;
-        uint32_t indexCount = 0;
-        int materialIndex = -1;
-    };
+        class CommandBuffer;
+        class GpuDevice;
+    }
 
-    class MeshRenderer
+    namespace graphics 
     {
-    public:
-        MeshRenderer(GpuDeviceVulkan& device);
-        ~MeshRenderer();
+        struct GpuMesh;
 
-        GpuMesh UploadMesh(const Mesh& mesh);
-        void DestroyMesh(GpuMesh& mesh);
+        class MeshRenderer
+        {
+            struct Impl;
+            std::unique_ptr<Impl> m_impl;
+        public:
+            MeshRenderer(rhi::GpuDevice& _device);
+            ~MeshRenderer();
 
-        void Draw(CommandBufferVulkan& cmd, const GpuMesh& mesh,
-                 const glm::mat4& model = glm::mat4(1.0f),
-                 const glm::mat4& view = glm::mat4(1.0f),
-                 const glm::mat4& projection = glm::mat4(1.0f));
+            GpuMesh UploadMesh(const Mesh& mesh);
+            void DestroyMesh(GpuMesh& mesh);
 
-        VkDescriptorSetLayout DescriptorSetLayout() const { return m_descriptorSetLayout; }
-        const VkDevice Device();
+            void Draw(rhi::CommandBuffer& cmd, const GpuMesh& mesh,
+                     const glm::mat4& model = glm::mat4(1.0f),
+                     const glm::mat4& view = glm::mat4(1.0f),
+                     const glm::mat4& projection = glm::mat4(1.0f));
 
-        VkDescriptorSet CreateDescriptorSet(VkImageView view, VkSampler sampler);
+            rhi::GpuDevice* Device();
 
-        void CreateDescriptorPool(uint32_t maxSets);
-
-        void SetMaterialDescriptorSets(const std::vector<VkDescriptorSet>& sets);
-        void CreateDescriptorSetLayout();
-
-    private:
-        void CreatePipeline();
-        void DestroyDescriptors();
-
-        GpuDeviceVulkan&    m_device;
-        VkPipeline          m_pipeline = VK_NULL_HANDLE;
-        VkPipelineLayout    m_pipelineLayout = VK_NULL_HANDLE;
-
-        VkDescriptorSetLayout m_descriptorSetLayout = VK_NULL_HANDLE;
-        VkDescriptorPool      m_descriptorPool = VK_NULL_HANDLE;
-
-        std::vector<VkDescriptorSet> m_materialDescriptorSets;
-    };
+            Impl& GetImpl();
+        };
+    }
 }
 
 #endif //VRAKTAL_CORE_GRAPHICS_MESH_RENDERER_H

@@ -49,9 +49,6 @@
     <Filter Include="Source Files\core\rhi">
       <UniqueIdentifier>{69b3d59b-2b82-4b4f-987e-d0a9f7e29cf5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\core\gpu_details">
-      <UniqueIdentifier>{009a1b64-8b6c-4407-8225-b7a570e5ff67}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\vkb\VkBootstrap.cpp">
@@ -66,7 +63,7 @@
     <ClCompile Include="src\core\loaders\textureLoader.cpp">
       <Filter>Source Files\core\loaders</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\graphics\meshRenderer.cpp">
+    <ClCompile Include="src\core\graphics\meshRenderer_impl_vulkan.cpp">
       <Filter>Source Files\core\graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\core\rhi\commandBuffer_impl_vulkan.cpp">
@@ -92,9 +89,6 @@
     </ClCompile>
     <ClCompile Include="src\core\rhi\window.cpp">
       <Filter>Source Files\core</Filter>
-    </ClCompile>
-    <ClCompile Include="include\core\gpu_details\converter_vulkan.cpp">
-      <Filter>Source Files\core\gpu_details</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -179,8 +173,8 @@
     <ClInclude Include="include\core\window.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="include\core\gpu_details\converter_vulkan.h">
-      <Filter>Source Files\core\gpu_details</Filter>
+    <ClInclude Include="src\core\graphics\mershRenderer_impl_vulkan.h">
+      <Filter>Source Files\core\graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

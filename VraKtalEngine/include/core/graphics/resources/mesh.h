@@ -4,6 +4,7 @@
 
 #include <glm/glm.hpp>
 #include <vector>
+#include <core/rhi/buffer.h>
 
 namespace core::graphics::resources
 {
@@ -21,7 +22,9 @@ namespace core::graphics::resources
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
 		uint32_t materialIndex = -1; //--> no meterials in a mesh
-    };   
+
+
+    };
 }
 
 #endif //VRAKTAL_GRAPHICS_RESOURCES_MESH_H

@@ -11,14 +11,14 @@
 
 using namespace core::loaders;
 using namespace core::graphics::resources;
-using namespace core::rhi::vulkan;
+using namespace core::rhi;
 
 VkFormat ChooseFormat(bool srgb)
 {
 	return srgb ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
 }
 
-TextureLoader::TextureLoader(GpuDeviceVulkan& device)
+TextureLoader::TextureLoader(GpuDevice& device)
 	: m_device(device)
 {
 }
@@ -49,7 +49,7 @@ TextureGpu TextureLoader::CreateWhiteFallback()
 	VmaAllocationCreateInfo allocInfo{};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	if (vmaCreateImage(m_device.Allocator(), &imgInfo, &allocInfo, &tex.image, &tex.allocation, nullptr) != VK_SUCCESS)
+	if (vmaCreateImage(m_device.GetImpl().Allocator(), &imgInfo, &allocInfo, &tex.image, &tex.allocation, nullptr) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create fallback image");
 	}
@@ -61,19 +61,19 @@ TextureGpu TextureLoader::CreateWhiteFallback()
 	bufInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	VmaAllocationCreateInfo stagingAllocInfo{};
 	stagingAllocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-	vmaCreateBuffer(m_device.Allocator(), &bufInfo, &stagingAllocInfo, &staging, &stagingAlloc, nullptr);
+	vmaCreateBuffer(m_device.GetImpl().Allocator(), &bufInfo, &stagingAllocInfo, &staging, &stagingAlloc, nullptr);
 
 	void* mapped;
-	vmaMapMemory(m_device.Allocator(), stagingAlloc, &mapped);
+	vmaMapMemory(m_device.GetImpl().Allocator(), stagingAlloc, &mapped);
 	std::memcpy(mapped, pixel, sizeof(pixel));
-	vmaUnmapMemory(m_device.Allocator(), stagingAlloc);
+	vmaUnmapMemory(m_device.GetImpl().Allocator(), stagingAlloc);
 
 	VkCommandBufferAllocateInfo allocInfoCmd{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
 	allocInfoCmd.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	allocInfoCmd.commandBufferCount = 1;
-	allocInfoCmd.commandPool = m_device.CommandPool();
+	allocInfoCmd.commandPool = m_device.GetImpl().CommandPool();
 	VkCommandBuffer cmd;
-	vkAllocateCommandBuffers(m_device.Device(), &allocInfoCmd, &cmd);
+	vkAllocateCommandBuffers(m_device.GetImpl().Device(), &allocInfoCmd, &cmd);
 
 	VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -115,11 +115,11 @@ TextureGpu TextureLoader::CreateWhiteFallback()
 	VkSubmitInfo submit{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 	submit.commandBufferCount = 1;
 	submit.pCommandBuffers = &cmd;
-	vkQueueSubmit(m_device.GraphicsQueue(), 1, &submit, VK_NULL_HANDLE);
-	vkQueueWaitIdle(m_device.GraphicsQueue());
-	vkFreeCommandBuffers(m_device.Device(), m_device.CommandPool(), 1, &cmd);
+	vkQueueSubmit(m_device.GetImpl().GraphicsQueue(), 1, &submit, VK_NULL_HANDLE);
+	vkQueueWaitIdle(m_device.GetImpl().GraphicsQueue());
+	vkFreeCommandBuffers(m_device.GetImpl().Device(), m_device.GetImpl().CommandPool(), 1, &cmd);
 
-	vmaDestroyBuffer(m_device.Allocator(), staging, stagingAlloc);
+	vmaDestroyBuffer(m_device.GetImpl().Allocator(), staging, stagingAlloc);
 
 	VkImageViewCreateInfo viewInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
 	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -128,7 +128,7 @@ TextureGpu TextureLoader::CreateWhiteFallback()
 	viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	viewInfo.subresourceRange.levelCount = 1;
 	viewInfo.subresourceRange.layerCount = 1;
-	if (vkCreateImageView(m_device.Device(), &viewInfo, nullptr, &tex.view) != VK_SUCCESS)
+	if (vkCreateImageView(m_device.GetImpl().Device(), &viewInfo, nullptr, &tex.view) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create fallback image view");
 	}
@@ -138,7 +138,7 @@ TextureGpu TextureLoader::CreateWhiteFallback()
 	samp.minFilter = VK_FILTER_LINEAR;
 	samp.addressModeU = samp.addressModeV = samp.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	samp.maxLod = 0.0f;
-	if (vkCreateSampler(m_device.Device(), &samp, nullptr, &tex.sampler) != VK_SUCCESS)
+	if (vkCreateSampler(m_device.GetImpl().Device(), &samp, nullptr, &tex.sampler) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create fallback sampler");
 	}
@@ -185,7 +185,7 @@ TextureGpu TextureLoader::LoadTextureFile(const std::string& path, bool srgb)
 	VmaAllocationCreateInfo allocInfo{};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	if (vmaCreateImage(m_device.Allocator(), &imgInfo, &allocInfo, &tex.image, &tex.allocation, nullptr) != VK_SUCCESS) 
+	if (vmaCreateImage(m_device.GetImpl().Allocator(), &imgInfo, &allocInfo, &tex.image, &tex.allocation, nullptr) != VK_SUCCESS) 
 	{
 		stbi_image_free(data);
 		throw std::runtime_error("Failed to create image");
@@ -198,20 +198,20 @@ TextureGpu TextureLoader::LoadTextureFile(const std::string& path, bool srgb)
 	bufInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	VmaAllocationCreateInfo stagingAllocInfo{};
 	stagingAllocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-	vmaCreateBuffer(m_device.Allocator(), &bufInfo, &stagingAllocInfo, &staging, &stagingAlloc, nullptr);
+	vmaCreateBuffer(m_device.GetImpl().Allocator(), &bufInfo, &stagingAllocInfo, &staging, &stagingAlloc, nullptr);
 
 	void* mapped;
-	vmaMapMemory(m_device.Allocator(), stagingAlloc, &mapped);
+	vmaMapMemory(m_device.GetImpl().Allocator(), stagingAlloc, &mapped);
 	std::memcpy(mapped, data, dataSize);
-	vmaUnmapMemory(m_device.Allocator(), stagingAlloc);
+	vmaUnmapMemory(m_device.GetImpl().Allocator(), stagingAlloc);
 	stbi_image_free(data);
 
 	VkCommandBufferAllocateInfo allocInfoCmd{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
 	allocInfoCmd.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	allocInfoCmd.commandBufferCount = 1;
-	allocInfoCmd.commandPool = m_device.CommandPool();
+	allocInfoCmd.commandPool = m_device.GetImpl().CommandPool();
 	VkCommandBuffer cmd;
-	vkAllocateCommandBuffers(m_device.Device(), &allocInfoCmd, &cmd);
+	vkAllocateCommandBuffers(m_device.GetImpl().Device(), &allocInfoCmd, &cmd);
 
 	VkCommandBufferBeginInfo begin{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 	begin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -250,10 +250,10 @@ TextureGpu TextureLoader::LoadTextureFile(const std::string& path, bool srgb)
 	VkSubmitInfo submit{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 	submit.commandBufferCount = 1;
 	submit.pCommandBuffers = &cmd;
-	vkQueueSubmit(m_device.GraphicsQueue(), 1, &submit, VK_NULL_HANDLE);
-	vkQueueWaitIdle(m_device.GraphicsQueue());
-	vkFreeCommandBuffers(m_device.Device(), m_device.CommandPool(), 1, &cmd);
-	vmaDestroyBuffer(m_device.Allocator(), staging, stagingAlloc);
+	vkQueueSubmit(m_device.GetImpl().GraphicsQueue(), 1, &submit, VK_NULL_HANDLE);
+	vkQueueWaitIdle(m_device.GetImpl().GraphicsQueue());
+	vkFreeCommandBuffers(m_device.GetImpl().Device(), m_device.GetImpl().CommandPool(), 1, &cmd);
+	vmaDestroyBuffer(m_device.GetImpl().Allocator(), staging, stagingAlloc);
 
 	VkImageViewCreateInfo viewInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
 	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -262,7 +262,7 @@ TextureGpu TextureLoader::LoadTextureFile(const std::string& path, bool srgb)
 	viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	viewInfo.subresourceRange.levelCount = 1;
 	viewInfo.subresourceRange.layerCount = 1;
-	if (vkCreateImageView(m_device.Device(), &viewInfo, nullptr, &tex.view) != VK_SUCCESS)
+	if (vkCreateImageView(m_device.GetImpl().Device(), &viewInfo, nullptr, &tex.view) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create image view");
 	}
@@ -273,7 +273,7 @@ TextureGpu TextureLoader::LoadTextureFile(const std::string& path, bool srgb)
 	samp.addressModeU = samp.addressModeV = samp.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	samp.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	samp.maxLod = 0.0f;
-	if (vkCreateSampler(m_device.Device(), &samp, nullptr, &tex.sampler) != VK_SUCCESS)
+	if (vkCreateSampler(m_device.GetImpl().Device(), &samp, nullptr, &tex.sampler) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create sampler");
 	}

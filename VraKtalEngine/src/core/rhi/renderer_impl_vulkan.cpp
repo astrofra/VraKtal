@@ -1,8 +1,22 @@
-﻿#include "../src/core/rhi/renderer_impl_vulkan.h"
+﻿#include <core/rhi/renderer.h>
+#include "../src/core/rhi/renderer_impl_vulkan.h"
+
 #include "../src/core/rhi/commandBuffer_impl_vulkan.h"
+#include "../src/core/graphics/mershRenderer_impl_vulkan.h"
 
 using namespace core::rhi;
 using namespace core::graphics;
+
+
+Renderer::Renderer(MeshRenderer& _meshRenderer)
+{
+    m_impl = new Impl(&_meshRenderer);
+}
+
+core::rhi::Renderer::~Renderer()
+{
+    delete m_impl;
+}
 
 void Renderer::Render(CommandBuffer& commandBuffer,
     const RenderingInfo& info,
@@ -30,7 +44,7 @@ void Renderer::Impl::Render(CommandBuffer& commandBuffer,
     const glm::mat4& view,
     const glm::mat4& proj)
 {
-   commandBuffer.BeginRendering(info, imageIndex);
+    commandBuffer.BeginRendering(info, imageIndex);
 
     VkViewport viewport{};
     viewport.x = 0.0f;
@@ -51,7 +65,7 @@ void Renderer::Impl::Render(CommandBuffer& commandBuffer,
     for (auto& mesh : meshes)
     {
         glm::mat4 model = glm::mat4(1.0f);
-        m_meshRenderer->Draw(commandBuffer.GetImpl(), mesh, model, view, proj);
+        m_meshRenderer->Draw(commandBuffer, mesh, model, view, proj);
     }
 
     commandBuffer.EndRendering(imageIndex);

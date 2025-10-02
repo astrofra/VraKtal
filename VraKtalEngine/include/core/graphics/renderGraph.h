@@ -8,6 +8,7 @@
 
 #include <core/rhi/commandBuffer.h>
 #include <core/rhi/image.h>
+#include <core/rhi/gpuImage.h>
 
 using namespace core::rhi;
 
@@ -49,7 +50,7 @@ namespace core::graphics
 		uint32_t id;
 		Layout currentLayout;
 		AccessFlags lastAccess;
-		Image* image = nullptr;
+		GpuImage* image = nullptr;
 		ResourceDescriptor descriptor; //--> if fresh resource
 	};
 

@@ -15,11 +15,11 @@ namespace core::rhi
         float r, g, b, a;
     };
 
-    class Image;
+    class GpuImage;
 
     struct RenderingAttachment
     {
-        Image* image;
+        GpuImage* image;
         ClearColor clearValue;
         LoadOp loadOp;
         StoreOp storeOp;
