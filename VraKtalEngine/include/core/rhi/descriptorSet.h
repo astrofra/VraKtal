@@ -6,6 +6,8 @@
 #include <vector>
 #include <memory>
 
+#include <vulkan/vulkan.h> // TODO : Remove this.
+
 #include <core/rhi/buffer.h>
 #include <core/rhi/gpuImage.h>
 
@@ -42,7 +44,7 @@ namespace core::rhi
     public:
         struct Impl;
 
-        DescriptorSet(VkDevice device, VkDescriptorPool pool, const DescriptorSetLayoutDesc& layoutDesc);
+        DescriptorSet(VkDevice device, VkDescriptorPool pool, const DescriptorSetLayoutDesc& layoutDesc); // TODO : Change VkDevice to GpuDevice and VkDescriptorPool to DescriptorPool
         ~DescriptorSet();
 
         void BindBuffer(uint32_t binding, Buffer* buffer, size_t offset, size_t range);

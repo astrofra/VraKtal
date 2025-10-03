@@ -7,9 +7,6 @@
 
 namespace core::rhi
 {
-    VkDescriptorType ToVkDescriptorType(DescriptorType type);
-    VkShaderStageFlags ToVkShaderStage(ShaderStage stage);
-
     struct DescriptorSet::Impl
     {
         Impl(VkDevice device, VkDescriptorPool pool, const DescriptorSetLayoutDesc& desc);

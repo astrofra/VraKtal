@@ -1,6 +1,7 @@
 #include "../src/core/rhi/buffer_impl_vulkan.h"
 #include "../src/core/rhi/gpuDevice_impl_glfw_vulkan.h"
 #include "../src/core/gpu_details/converter_vulkan.h"
+#include "../src/core/gpu_details/initializer_vulkan.h"
 
 #include <stdexcept>
 #include <cstring>
@@ -26,11 +27,7 @@ Buffer::Impl::Impl(GpuDevice& gpuDevice, const BufferDesc& desc)
     physicalDevice = gpuDevice.GetImpl().m_physicalDevice;
     size = desc.size;
 
-    VkBufferCreateInfo bufferInfo{};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = desc.size;
-    bufferInfo.usage = gpu_details::ToVkBufferUsage(desc.usage);
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    VkBufferCreateInfo bufferInfo = core::gpu_details::BufferCreateInfo(desc.size, desc.usage);
 
     if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
         throw std::runtime_error("Failed to create Vulkan buffer");
@@ -57,10 +54,7 @@ Buffer::Impl::Impl(GpuDevice& gpuDevice, const BufferDesc& desc)
     if (memoryTypeIndex == UINT32_MAX)
         throw std::runtime_error("Failed to find suitable memory type for buffer");
 
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = memoryTypeIndex;
+    VkMemoryAllocateInfo allocInfo = core::gpu_details::BufferCreateAllocateInfo(memRequirements.size, memoryTypeIndex);
 
     if (vkAllocateMemory(device, &allocInfo, nullptr, &memory) != VK_SUCCESS)
         throw std::runtime_error("Failed to allocate Vulkan buffer memory");

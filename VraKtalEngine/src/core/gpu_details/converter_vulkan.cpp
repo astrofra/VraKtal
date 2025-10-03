@@ -23,3 +23,25 @@ VkMemoryPropertyFlags core::gpu_details::ToVkMemoryUsage(core::rhi::MemoryUsage 
     default: return 0;
     }
 }
+
+VkDescriptorType core::gpu_details::ToVkDescriptorType(core::rhi::DescriptorType type)
+{
+    switch (type)
+    {
+    case core::rhi::DescriptorType::UniformBuffer: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    case core::rhi::DescriptorType::StorageBuffer: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    case core::rhi::DescriptorType::ImageSampler: return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    default: return VK_DESCRIPTOR_TYPE_MAX_ENUM;
+    }
+}
+
+VkShaderStageFlags core::gpu_details::ToVkShaderStage(core::rhi::ShaderStage stage)
+{
+    switch (stage)
+    {
+    case core::rhi::ShaderStage::Vertex: return VK_SHADER_STAGE_VERTEX_BIT;
+    case core::rhi::ShaderStage::Fragment: return VK_SHADER_STAGE_FRAGMENT_BIT;
+    case core::rhi::ShaderStage::Compute: return VK_SHADER_STAGE_COMPUTE_BIT;
+    default: return 0;
+    }
+}
