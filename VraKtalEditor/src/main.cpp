@@ -2,6 +2,8 @@
 #include <core/rhi/gpuDevice.h>
 #include <core/rhi/renderer.h>
 
+#include <utils/imgui_vulkan.h>
+
 //#include "../src/core/rhi/commandBuffer_impl_vulkan.h"
 #include "../src/core/graphics/mershRenderer_impl_vulkan.h"
 
@@ -100,6 +102,8 @@ int main()
 
     glm::mat4 proj = glm::perspectiveRH_ZO(glm::radians(60.0f), aspect, 0.1f, 100.0f);
     proj[1][1] *= -1;
+
+    utils::InitImGui(device, window.GlfwHandle());
 
     while (!window.ShouldClose())
     {

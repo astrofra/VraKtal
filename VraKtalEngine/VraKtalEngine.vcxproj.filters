@@ -52,6 +52,12 @@
     <Filter Include="Source Files\core\gpu_details">
       <UniqueIdentifier>{3af19617-8753-4a46-afd0-0616d466e76e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\utils">
+      <UniqueIdentifier>{1b138123-440a-4420-92f9-85329d9ae040}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\utils">
+      <UniqueIdentifier>{e155f264-1054-4bf5-9102-72b20168d9b1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\vkb\VkBootstrap.cpp">
@@ -98,6 +104,9 @@
     </ClCompile>
     <ClCompile Include="src\core\gpu_details\initializer_vulkan.cpp">
       <Filter>Source Files\core\gpu_details</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\imgui_vulkan.cpp">
+      <Filter>Source Files\utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -190,6 +199,9 @@
     </ClInclude>
     <ClInclude Include="src\core\gpu_details\initializer_vulkan.h">
       <Filter>Source Files\core\gpu_details</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utils\imgui_vulkan.h">
+      <Filter>Header Files\utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

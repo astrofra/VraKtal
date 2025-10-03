@@ -240,7 +240,7 @@ void MeshRenderer::Impl::Draw(rhi::CommandBuffer& cmd, const GpuMesh& mesh,
     VkCommandBuffer nativeCmd = cmd.GetImpl().GetNative();
 
     VkDeviceSize offsets[] = {0};
-    VkBuffer vertexBuffers[] = { mesh.vertexBuffer};
+    VkBuffer vertexBuffers[] = { mesh.vertexBuffer };
 
     vkCmdBindPipeline(nativeCmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
