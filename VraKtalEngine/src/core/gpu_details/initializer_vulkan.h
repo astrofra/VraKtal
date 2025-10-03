@@ -1,0 +1,10 @@
+#ifndef VRAKTAL_CORE_GPU_DETAILS_INITIALIZER_VK_H
+#define VRAKTAL_CORE_GPU_DETAILS_INITIALIZER_VK_H
+#pragma once
+
+namespace core::gpu_details
+{
+
+}
+
+#endif //VRAKTAL_CORE_GPU_DETAILS_INITIALIZER_VK_H

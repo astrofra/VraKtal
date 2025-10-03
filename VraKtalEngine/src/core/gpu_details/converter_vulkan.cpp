@@ -1,8 +1,6 @@
 #include "../gpu_details/converter_vulkan.h"
 
-using namespace core::gpu_details;
-
-VkBufferUsageFlags ToVkBufferUsage(core::rhi::BufferUsage usage)
+VkBufferUsageFlags core::gpu_details::ToVkBufferUsage(core::rhi::BufferUsage usage)
 {
     switch (usage)
     {
@@ -16,7 +14,7 @@ VkBufferUsageFlags ToVkBufferUsage(core::rhi::BufferUsage usage)
     }
 }
 
-VkMemoryPropertyFlags ToVkMemoryUsage(core::rhi::MemoryUsage memory)
+VkMemoryPropertyFlags core::gpu_details::ToVkMemoryUsage(core::rhi::MemoryUsage memory)
 {
     switch (memory)
     {
