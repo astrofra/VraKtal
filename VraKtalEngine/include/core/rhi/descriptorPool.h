@@ -6,10 +6,12 @@
 
 namespace core::rhi
 {
+	class GpuDevice;
+
 	class DescriptorPool
 	{	
 	public:
-		explicit DescriptorPool();
+		explicit DescriptorPool(GpuDevice& device);
 		~DescriptorPool() noexcept;
 
 		struct Impl;

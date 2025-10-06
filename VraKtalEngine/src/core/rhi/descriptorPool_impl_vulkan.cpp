@@ -5,9 +5,9 @@
 
 using namespace core::rhi;
 
-DescriptorPool::DescriptorPool()
+DescriptorPool::DescriptorPool(GpuDevice& device)
 {
-	m_impl = std::make_unique<Impl>();
+	m_impl = std::make_unique<Impl>(device);
 }
 
 DescriptorPool::~DescriptorPool() = default;
@@ -29,7 +29,8 @@ DescriptorPool::Impl::Impl(GpuDevice& device)
 		{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,        256 }
 	};
 
-	VkDescriptorPoolCreateInfo poolInfo = { .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+	VkDescriptorPoolCreateInfo poolInfo{};
+	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 	poolInfo.maxSets = 2048;
 	poolInfo.poolSizeCount = uint32_t(poolSizes.size());
