@@ -4,6 +4,8 @@
 #include "../src/core/rhi/commandBuffer_impl_vulkan.h"
 #include "../src/core/graphics/mershRenderer_impl_vulkan.h"
 
+#include "../src/core/gpu_details/initializer_vulkan.h"
+
 using namespace core::rhi;
 using namespace core::graphics;
 
@@ -46,18 +48,8 @@ void Renderer::Impl::Render(CommandBuffer& commandBuffer,
 {
     commandBuffer.BeginRendering(info, imageIndex);
 
-    VkViewport viewport{};
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
-    viewport.width = (float)info.width;
-    viewport.height = (float)info.height;
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
-
-    VkRect2D scissor{};
-    VkExtent2D infoExtent{ info.width, info.height };
-    scissor.offset = { 0, 0 };
-    scissor.extent = infoExtent;
+    VkViewport viewport = gpu_details::CreateViewport((float)info.width, (float)info.height);
+    VkRect2D scissor = gpu_details::CreateScissor(info.width, info.height);
 
     vkCmdSetViewport(commandBuffer.GetImpl().GetNative(), 0, 1, &viewport);
     vkCmdSetScissor(commandBuffer.GetImpl().GetNative(), 0, 1, &scissor);
