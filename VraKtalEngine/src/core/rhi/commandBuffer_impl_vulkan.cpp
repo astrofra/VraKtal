@@ -58,7 +58,7 @@ void CommandBuffer::Impl::Begin()
 {
     vkResetCommandBuffer(m_commandBuffer, 0);
 
-    VkCommandBufferBeginInfo beginInfo = gpu_details::CommandBufferBeginInfo()
+    VkCommandBufferBeginInfo beginInfo = gpu_details::CommandBufferBeginInfo();
 
     if (vkBeginCommandBuffer(m_commandBuffer, &beginInfo) != VK_SUCCESS)
     {

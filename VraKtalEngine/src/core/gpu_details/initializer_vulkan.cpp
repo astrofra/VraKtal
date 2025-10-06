@@ -1,5 +1,22 @@
 #include "initializer_vulkan.h"
 
+VkSemaphoreCreateInfo core::gpu_details::SemaphoreCreateInfo()
+{
+    VkSemaphoreCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    return info;
+}
+
+VkFenceCreateInfo core::gpu_details::FenceCreateInfo(bool signaled)
+{
+    VkFenceCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    info.flags = signaled ? VK_FENCE_CREATE_SIGNALED_BIT : 0;
+
+    return info;
+}
+
 VkBufferCreateInfo core::gpu_details::BufferCreateInfo(size_t size, core::rhi::BufferUsage usage)
 {
     VkBufferCreateInfo bufferInfo{};
@@ -9,6 +26,40 @@ VkBufferCreateInfo core::gpu_details::BufferCreateInfo(size_t size, core::rhi::B
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     return bufferInfo;
+}
+
+VkImageCreateInfo core::gpu_details::ImageCreateInfo(uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage)
+{
+    VkImageCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    info.imageType = VK_IMAGE_TYPE_2D;
+    info.extent.width = width;
+    info.extent.height = height;
+    info.extent.depth = 1;
+    info.mipLevels = 1;
+    info.arrayLayers = 1;
+    info.format = format;
+    info.tiling = VK_IMAGE_TILING_OPTIMAL;
+    info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    info.usage = usage;
+    info.samples = VK_SAMPLE_COUNT_1_BIT;
+    info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    return info;
+}
+
+VkImageViewCreateInfo core::gpu_details::ImageViewCreateInfo(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
+{
+    VkImageViewCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    info.image = image;
+    info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    info.format = format;
+    info.subresourceRange.aspectMask = aspectFlags;
+    info.subresourceRange.baseMipLevel = 0;
+    info.subresourceRange.levelCount = 1;
+    info.subresourceRange.baseArrayLayer = 0;
+    info.subresourceRange.layerCount = 1;
+    return info;
 }
 
 VkMemoryAllocateInfo core::gpu_details::BufferCreateAllocateInfo(uint64_t allocationSize, uint32_t size)
@@ -31,6 +82,24 @@ VkDescriptorSetLayoutCreateInfo core::gpu_details::DescriptorSetLayoutCreateInfo
     return layoutInfo;
 }
 
+VkSubmitInfo core::gpu_details::SubmitInfo(const VkCommandBuffer cmd, const VkSemaphore wait, const VkPipelineStageFlags waitStage, const VkSemaphore signal)
+{
+    VkSubmitInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+    info.waitSemaphoreCount = 1;
+    info.pWaitSemaphores = &wait;
+    info.pWaitDstStageMask = &waitStage;
+
+    info.commandBufferCount = 1;
+    info.pCommandBuffers = &cmd;
+
+    info.signalSemaphoreCount = 1;
+    info.pSignalSemaphores = &signal;
+
+    return info;
+}
+
 VkDescriptorSetAllocateInfo core::gpu_details::DescriptorSetCreateAllocateInfo(VkDescriptorSetLayout layout, VkDescriptorPool pool)
 {
     VkDescriptorSetAllocateInfo allocInfo{};
@@ -40,6 +109,19 @@ VkDescriptorSetAllocateInfo core::gpu_details::DescriptorSetCreateAllocateInfo(V
     allocInfo.pSetLayouts = &layout;
 
     return allocInfo;
+}
+
+VkPresentInfoKHR core::gpu_details::PresentInfo(const VkSemaphore& semaphore, VkSwapchainKHR& swapchain, uint32_t& imageIndex)
+{
+    VkPresentInfoKHR present{};
+    present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    present.waitSemaphoreCount = 1;
+    present.pWaitSemaphores = &semaphore;
+    present.swapchainCount = 1;
+    present.pSwapchains = &swapchain;
+    present.pImageIndices = &imageIndex;
+
+    return present;
 }
 
 VkDescriptorBufferInfo core::gpu_details::DescriptorSetCreateBufferInfo(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range)

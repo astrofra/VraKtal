@@ -1,6 +1,7 @@
 ﻿#include "../src/core/rhi/gpuDevice_impl_glfw_vulkan.h"
 #include "../src/core/rhi/commandBuffer_impl_vulkan.h"
 #include "../src/core/rhi/gpuImage_impl_vulkan.h"
+#include "../src/core/gpu_details/initializer_vulkan.h"
 
 #include <core/window.h>
 
@@ -238,9 +239,8 @@ void GpuDevice::Impl::DestroySwapchain()
 
 void GpuDevice::Impl::CreateCommandPool()
 {
-    VkCommandPoolCreateInfo commandPool_info{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-    commandPool_info.queueFamilyIndex = m_graphicsQueueFamily;
-    commandPool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    VkCommandPoolCreateInfo commandPool_info = gpu_details::CommandPoolCreateInfo(m_graphicsQueueFamily);
+
 
     if (vkCreateCommandPool(m_device, &commandPool_info, nullptr, &m_cmdPool) != VK_SUCCESS)
     {
@@ -260,9 +260,8 @@ void GpuDevice::Impl::DestroyCommandPool()
 void GpuDevice::Impl::CreateSyncObjects()
 {
     m_frames.resize(OVERLAPPED_FRAMES);
-    VkSemaphoreCreateInfo semInfo{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
-    VkFenceCreateInfo fenceInfo{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
-    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+    VkSemaphoreCreateInfo semInfo = gpu_details::SemaphoreCreateInfo();
+    VkFenceCreateInfo fenceInfo = gpu_details::FenceCreateInfo(true);
 
     for (int i = 0; i < OVERLAPPED_FRAMES; ++i)
     {
@@ -338,26 +337,17 @@ void GpuDevice::Impl::EndFrame(uint32_t imageIndex, VkCommandBuffer cmd)
     FrameSync& sync = m_frames[m_currentFrame];
 
     VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-    VkSubmitInfo submit{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
-    submit.waitSemaphoreCount = 1;
-    submit.pWaitSemaphores = &sync.imageAvailable;
-    submit.pWaitDstStageMask = &waitStage;
-    submit.commandBufferCount = 1;
-    submit.pCommandBuffers = &cmd;
-    submit.signalSemaphoreCount = 1;
-    submit.pSignalSemaphores = &sync.renderFinished;
+    VkSubmitInfo submit = gpu_details::SubmitInfo(
+        cmd,
+        sync.imageAvailable,
+        waitStage,
+        sync.renderFinished
+    );
 
     if (vkQueueSubmit(m_graphicsQueue, 1, &submit, sync.inFlight) != VK_SUCCESS)
         throw std::runtime_error("Queue submit failed");
 
-    VkPresentInfoKHR present{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
-    present.waitSemaphoreCount = 1;
-    present.pWaitSemaphores = &sync.renderFinished;
-    present.swapchainCount = 1;
-    present.pSwapchains = &m_swapchain;
-    present.pImageIndices = &imageIndex;
-
+    VkPresentInfoKHR present = gpu_details::PresentInfo(sync.renderFinished, m_swapchain, imageIndex);
     VkResult res = vkQueuePresentKHR(m_graphicsQueue, &present);
 
     if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR)
@@ -457,18 +447,12 @@ void GpuDevice::Impl::CreateDepthBuffer()
 {
     m_depthFormat = FindDepthFormat();
 
-    VkImageCreateInfo imageInfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-    imageInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageInfo.extent.width = m_swapExtent.width;
-    imageInfo.extent.height = m_swapExtent.height;
-    imageInfo.extent.depth = 1;
-    imageInfo.mipLevels = 1;
-    imageInfo.arrayLayers = 1;
-    imageInfo.format = m_depthFormat;
-    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    VkImageCreateInfo imageInfo = gpu_details::ImageCreateInfo(
+        m_swapExtent.width,
+        m_swapExtent.height,
+        m_depthFormat,
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
+    );
 
     VmaAllocationCreateInfo allocInfo{};
     allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -478,15 +462,7 @@ void GpuDevice::Impl::CreateDepthBuffer()
         throw std::runtime_error("Failed to create depth image");
     }
 
-    VkImageViewCreateInfo viewInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-    viewInfo.image = m_depthImage;
-    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    viewInfo.format = m_depthFormat;
-    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-    viewInfo.subresourceRange.baseMipLevel = 0;
-    viewInfo.subresourceRange.levelCount = 1;
-    viewInfo.subresourceRange.baseArrayLayer = 0;
-    viewInfo.subresourceRange.layerCount = 1;
+    VkImageViewCreateInfo viewInfo = gpu_details::ImageViewCreateInfo(m_depthImage, m_depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 
     if (vkCreateImageView(m_device, &viewInfo, nullptr, &m_depthImageView) != VK_SUCCESS) 
     {
