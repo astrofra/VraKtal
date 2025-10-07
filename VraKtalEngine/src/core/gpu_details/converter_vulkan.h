@@ -13,7 +13,7 @@ namespace core::gpu_details
 	VkBufferUsageFlags		ToVkBufferUsage(core::rhi::BufferUsage usage);
 	VkMemoryPropertyFlags	ToVkMemoryUsage(core::rhi::MemoryUsage memory);
 	VkDescriptorType		ToVkDescriptorType(core::rhi::DescriptorType type);
-	VkShaderStageFlags		ToVkShaderStage(core::rhi::ShaderStage stage);
+	VkShaderStageFlagBits	ToVkShaderStage(core::rhi::ShaderStage stage);
 	VkFormat				ToVkFormat(core::rhi::Format format);
 	VkImageUsageFlags		ToVkImageUsage(core::rhi::TextureUsage usage);
 	VkImageLayout			ToVkImageLayout(core::rhi::TextureLayout layout);

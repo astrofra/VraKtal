@@ -3,11 +3,14 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 namespace core::rhi
 {
 	class Swapchain
 	{
+		struct Impl;
+		std::unique_ptr<Impl> m_impl;
 	public:
 		Swapchain();
 		~Swapchain();
@@ -17,6 +20,8 @@ namespace core::rhi
 
 		uint32_t GetCurrentFrameIndex() const;
 		uint32_t GetImageCount() const;
+
+		Impl& GetImpl();
 	};
 }
 

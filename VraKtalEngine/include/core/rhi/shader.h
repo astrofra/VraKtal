@@ -3,16 +3,20 @@
 #pragma once
 
 #include <vector>
+#include <memory>
+
 #include <core/rhi/enums.h>
 
 namespace core::rhi
 {
 	class CommandBuffer;
+	class GpuDevice;
 
 	struct ShaderStageDesc
 	{
 		ShaderStage stage;
-		std::vector<uint8_t> code;
+		std::vector<uint8_t> spirv; 
+		const char* entryPoint = "main";
 	};
 
 	struct ShaderDesc
@@ -23,8 +27,14 @@ namespace core::rhi
 	class Shader
 	{
 	public:
-		Shader();
+		Shader(GpuDevice* device, ShaderDesc& desc);
+		~Shader();
 		void Bind(class CommandBuffer* cmd);
+
+		struct Impl;
+		Impl& GetImpl();
+	private:
+		std::unique_ptr<Impl> m_impl;
 	};
 }
 

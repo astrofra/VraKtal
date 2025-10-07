@@ -111,6 +111,15 @@
     <ClCompile Include="src\core\rhi\descriptorPool_impl_vulkan.cpp">
       <Filter>Source Files\core\rhi</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\rhi\shader_impl_vulkan.cpp">
+      <Filter>Source Files\core\rhi</Filter>
+    </ClCompile>
+    <ClCompile Include="include\core\rhi\shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\rhi\texture_impl_vulkan.cpp">
+      <Filter>Source Files\core\rhi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\vkb\VkBootstrap.h">
@@ -223,6 +232,12 @@
     </ClInclude>
     <ClInclude Include="include\core\rhi\enums.h">
       <Filter>Header Files\core\rhi</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\rhi\shader_impl_vulkan.h">
+      <Filter>Source Files\core\rhi</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\rhi\texture_impl_vulkan.h">
+      <Filter>Source Files\core\rhi</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

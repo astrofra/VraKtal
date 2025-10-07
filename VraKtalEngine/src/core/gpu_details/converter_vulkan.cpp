@@ -37,14 +37,14 @@ VkDescriptorType core::gpu_details::ToVkDescriptorType(core::rhi::DescriptorType
     }
 }
 
-VkShaderStageFlags core::gpu_details::ToVkShaderStage(core::rhi::ShaderStage stage)
+VkShaderStageFlagBits core::gpu_details::ToVkShaderStage(core::rhi::ShaderStage stage)
 {
     switch (stage)
     {
-    case core::rhi::ShaderStage::Vertex: return VK_SHADER_STAGE_VERTEX_BIT;
-    case core::rhi::ShaderStage::Fragment: return VK_SHADER_STAGE_FRAGMENT_BIT;
-    case core::rhi::ShaderStage::Compute: return VK_SHADER_STAGE_COMPUTE_BIT;
-    default: return 0;
+    case core::rhi::ShaderStage::Vertex:    return VK_SHADER_STAGE_VERTEX_BIT;
+    case core::rhi::ShaderStage::Fragment:  return VK_SHADER_STAGE_FRAGMENT_BIT;
+    case core::rhi::ShaderStage::Compute:   return VK_SHADER_STAGE_COMPUTE_BIT;
+    default:                                return VK_SHADER_STAGE_ALL;
     }
 }
 

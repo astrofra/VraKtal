@@ -3,10 +3,14 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
+
 #include <core/rhi/enums.h>
 
 namespace core::rhi
 {
+	class GpuDevice;
+
 	struct TextureDesc
 	{
 		uint32_t width;
@@ -19,11 +23,19 @@ namespace core::rhi
 
 	class Texture
 	{
+	public:
+		Texture(GpuDevice* device, TextureDesc& desc);
 		~Texture();
 
 		void UploadData(const void* pixels, size_t size, uint32_t mipLevel = 0);
 		void GenerateMipmaps(class CommandBuffer* cmd);
 		void TransitionLayout(class CommandBuffer* cmd, TextureLayout newLayout);
+
+		struct Impl;
+		Impl& GetImpl();
+	
+	private:
+		std::unique_ptr<Impl> m_impl;
 	};
 }
 
