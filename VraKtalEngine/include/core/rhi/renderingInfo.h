@@ -5,11 +5,10 @@
 #include <cstdint>
 #include <vector>
 
+#include <core/rhi/enums.h>
+
 namespace core::rhi
 {
-    enum class LoadOp { Clear, Load, DontCare };
-    enum class StoreOp { Store, DontCare };
-
     struct ClearColor
     {
         float r, g, b, a;

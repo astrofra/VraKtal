@@ -8,25 +8,12 @@
 
 #include <vulkan/vulkan.h> // TODO : Remove this.
 
+#include <core/rhi/enums.h>
 #include <core/rhi/buffer.h>
 #include <core/rhi/gpuImage.h>
 
 namespace core::rhi
 {
-    enum class DescriptorType
-    {
-        UniformBuffer,
-        StorageBuffer,
-        ImageSampler
-    };
-
-    enum class ShaderStage
-    {
-        Vertex,
-        Fragment,
-        Compute
-    };
-
     struct DescriptorBinding
     {
         uint32_t binding;

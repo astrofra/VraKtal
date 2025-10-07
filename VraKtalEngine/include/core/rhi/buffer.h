@@ -5,25 +5,11 @@
 #include <memory>
 #include <cstddef>
 
+#include <core/rhi/enums.h>
+
 namespace core::rhi
 {
     class GpuDevice;
-
-    enum class BufferUsage
-    {
-        Vertex,
-        Index,
-        Uniform,
-        Storage,
-        TransferSrc,
-        TransferDst
-    };
-
-    enum class MemoryUsage
-    {
-        CPU,
-        GPU
-    };
 
     struct BufferDesc
     {
@@ -41,6 +27,8 @@ namespace core::rhi
         void* Map();
         void Unmap();
         void Update(const void* data, size_t size, size_t offset = 0);
+        
+        void UploadData(const void* data, size_t size, size_t offset = 0);
 
         const BufferDesc& GetDesc() const { return m_desc; }
 

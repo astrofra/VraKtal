@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <memory>
 
-
+#include <core/rhi/enums.h>
 
 namespace core
 {
@@ -13,8 +13,15 @@ namespace core
 
     namespace rhi
     {
+        class Swapchain;
         class CommandBuffer;
+        class Shader;
+        class Texture;
+        class Buffer;
+        class RenderPass;
         class GpuImage;
+
+        struct ShaderDesc;
 
         class GpuDevice
         {
@@ -28,9 +35,11 @@ namespace core
             bool BeginFrame(uint32_t& imageIndex);
             void EndFrame(uint32_t imageIndex, CommandBuffer& cmd);
 
-            CommandBuffer* CreateCommandBuffer();
-            void DestroyCommandBuffer(CommandBuffer* commandBuffer);
-            void RecreateSwapchain();
+            Swapchain       CreateSwapchain(void* windowHandle, uint32_t width, uint32_t height);
+            CommandBuffer   CreateCommandBuffer();
+            Buffer          CreateBuffer(size_t size, BufferUsage usage, MemoryUsage memUsage);
+            Texture         CreateTexture(uint32_t width, uint32_t height, Format format, TextureUsage usage);
+            Shader          CreateShader(const ShaderDesc& desc);
 
             void WaitIdle();
 
@@ -40,6 +49,9 @@ namespace core
             void* GetInstance() const;
             
             Impl& GetImpl();
+
+            void BeginFrame();
+            void EndFrame();
         };
     }
 }

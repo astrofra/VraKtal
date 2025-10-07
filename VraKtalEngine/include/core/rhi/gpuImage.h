@@ -5,16 +5,10 @@
 #include <memory>
 #include <cstdint>
 
+#include <core/rhi/enums.h>
+
 namespace core::rhi
 {
-    enum class GpuImageUsage
-    {
-        ColorAttachment,
-        DepthStencilAttachment,
-        Sampled,
-        Storage
-    };
-
     struct GpuImageDesc
     {
         uint32_t width = 0;

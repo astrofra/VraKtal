@@ -212,6 +212,18 @@
     <ClInclude Include="src\core\rhi\descriptorPool_impl_vulkan.h">
       <Filter>Source Files\core\rhi</Filter>
     </ClInclude>
+    <ClInclude Include="include\core\rhi\shader.h">
+      <Filter>Header Files\core\rhi</Filter>
+    </ClInclude>
+    <ClInclude Include="include\core\rhi\swapchain.h">
+      <Filter>Header Files\core\rhi</Filter>
+    </ClInclude>
+    <ClInclude Include="include\core\rhi\texture.h">
+      <Filter>Header Files\core\rhi</Filter>
+    </ClInclude>
+    <ClInclude Include="include\core\rhi\enums.h">
+      <Filter>Header Files\core\rhi</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\bin\assets\meshes\basicmesh.glb">

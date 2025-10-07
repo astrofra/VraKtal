@@ -165,11 +165,15 @@
     <ClInclude Include="include\core\rhi\commandBuffer.h" />
     <ClInclude Include="include\core\rhi\descriptorPool.h" />
     <ClInclude Include="include\core\rhi\descriptorSet.h" />
+    <ClInclude Include="include\core\rhi\enums.h" />
     <ClInclude Include="include\core\rhi\gpuDevice.h" />
     <ClInclude Include="include\core\rhi\gpuImage.h" />
     <ClInclude Include="include\core\rhi\pipeline.h" />
     <ClInclude Include="include\core\rhi\renderer.h" />
     <ClInclude Include="include\core\rhi\renderingInfo.h" />
+    <ClInclude Include="include\core\rhi\shader.h" />
+    <ClInclude Include="include\core\rhi\swapchain.h" />
+    <ClInclude Include="include\core\rhi\texture.h" />
     <ClInclude Include="include\core\window.h" />
     <ClInclude Include="include\utils\imgui_vulkan.h" />
     <ClInclude Include="src\core\gpu_details\converter_vulkan.h" />
