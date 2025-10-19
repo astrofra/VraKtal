@@ -1,4 +1,4 @@
-﻿#include "../src/core/rhi/commandBuffer_impl_vulkan.h"
+#include "../src/core/rhi/commandBuffer_impl_vulkan.h"
 #include "../src/core/rhi/gpuDevice_impl_glfw_vulkan.h"
 #include "../src/core/rhi/pipeline_impl_vulkan.h"
 #include "../src/core/rhi/gpuImage_impl_vulkan.h"
@@ -148,4 +148,9 @@ void CommandBuffer::Impl::TransitionImageLayout(VkImage image, VkFormat, VkImage
         0, nullptr,
         1, &barrierInfo.barrier
     );
+}
+
+VkCommandBuffer CommandBuffer::GetVkCommandBuffer() const
+{
+    return m_impl->GetNative(); // Impl must provide GetNative()
 }

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <memory>
+#include <vulkan/vulkan.h>
 
 namespace core::rhi
 {
@@ -35,6 +36,8 @@ namespace core::rhi
         void CopyBufferToTexture(Buffer* src, Texture* dst, uint32_t width, uint32_t height);
 
         void Submit();
+
+        VkCommandBuffer GetVkCommandBuffer() const;
 
         struct Impl;
         Impl& GetImpl();

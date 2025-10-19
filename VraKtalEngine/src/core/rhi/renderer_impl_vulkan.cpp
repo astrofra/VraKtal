@@ -59,6 +59,4 @@ void Renderer::Impl::Render(CommandBuffer& commandBuffer,
         glm::mat4 model = glm::mat4(1.0f);
         m_meshRenderer->Draw(commandBuffer, mesh, model, view, proj);
     }
-
-    commandBuffer.EndRendering(imageIndex);
 }

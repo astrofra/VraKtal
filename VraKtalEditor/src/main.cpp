@@ -4,6 +4,13 @@
 
 #include <utils/imgui_vulkan.h>
 
+
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_vulkan.h>
+
+#include <iostream>
+
 //#include "../src/core/rhi/commandBuffer_impl_vulkan.h"
 #include "../src/core/graphics/mershRenderer_impl_vulkan.h"
 
@@ -132,6 +139,25 @@ int main()
         // TODO : Expose swapchainImages
 
         renderer.Render(commandBuffer, info, imageIndex, gpuMeshes, view, proj);
+
+        // Start ImGui frame
+        ImGui_ImplVulkan_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::Begin("Vraktal ImGui");
+        ImGui::Text("Vulkan + ImGui Minimal");
+        if (ImGui::Button("Click me"))
+            std::cout << "Button clicked!" << std::endl;
+        ImGui::End();
+
+        ImGui::Render();
+
+        // Render ImGui into the command buffer
+        VkCommandBuffer rawCmd = commandBuffer.GetVkCommandBuffer();
+        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), rawCmd);
+
+        commandBuffer.EndRendering(imageIndex);
 
         commandBuffer.End();
         device.EndFrame(imageIndex, commandBuffer);
