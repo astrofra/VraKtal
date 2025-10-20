@@ -114,9 +114,6 @@
     <ClCompile Include="src\core\rhi\shader_impl_vulkan.cpp">
       <Filter>Source Files\core\rhi</Filter>
     </ClCompile>
-    <ClCompile Include="include\core\rhi\shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\core\rhi\texture_impl_vulkan.cpp">
       <Filter>Source Files\core\rhi</Filter>
     </ClCompile>

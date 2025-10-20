@@ -135,7 +135,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="include\core\rhi\shader.cpp" />
     <ClCompile Include="src\core\gpu_details\converter_vulkan.cpp" />
     <ClCompile Include="src\core\gpu_details\initializer_vulkan.cpp" />
     <ClCompile Include="src\core\graphics\meshRenderer_impl_vulkan.cpp" />
