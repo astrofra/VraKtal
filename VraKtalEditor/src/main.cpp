@@ -21,7 +21,11 @@
 #include <vector>
 #include <iostream>
 
+#ifdef _DEBUG
 #pragma comment(lib, "VraKtalEngine_Debug.lib")
+#else
+#pragma comment(lib, "VraKtalEngine_Release.lib")
+#endif
 
 using namespace core;
 using namespace core::rhi;
